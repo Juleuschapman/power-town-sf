@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Power Town SF — Grid Builder</title>
+<style>
+:root{
+  --ink:#f8fbff; --hud:#162333; --hud2:#223247; --blue:#4f6fe8;
+  --grass:#83ca61; --grass2:#6fb651; --road:#626e79; --roadline:#f4d958;
+  --power:#ffd83d; --danger:#ef5350; --water:#56bddd;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#0e1823;color:#17212b}
+button{font:inherit}
+button:focus-visible{outline:4px solid #fff;outline-offset:2px}
+.app{max-width:1280px;margin:0 auto;background:#d9eff8;min-height:100vh;box-shadow:0 0 50px #0006}
+.hud{position:sticky;top:0;z-index:80;display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;background:linear-gradient(180deg,#1c2c40,#142131);color:#fff;padding:9px 12px;border-bottom:2px solid #ffffff1a}
+.hudgroup{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.logo{font-weight:1000;letter-spacing:-.03em;font-size:19px;white-space:nowrap}
+.pill{background:#ffffff14;border:1px solid #ffffff1d;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:900;white-space:nowrap}
+.levelpill{background:#ffd84d;color:#263344;border-color:#fff2a3}
+.pill.good{color:#a8f5ac}
+.pill.bad{color:#ffaaa6}
+.emergency-pill{background:#d94141;color:#fff;border-color:#ff8c86;animation:alarm .7s infinite alternate}
+.levelbar{display:flex;gap:6px;overflow:auto;background:#223145;padding:7px 9px;border-bottom:1px solid #ffffff12}
+.levelbtn{flex:1 0 115px;min-height:48px;border:1px solid #ffffff1f;border-radius:11px;background:#35485e;color:#fff;font-weight:950;font-size:11px;cursor:pointer}
+.levelbtn.active{background:#ffd84d;color:#283645;border-color:#fff0a4}
+.levelbtn.completed{box-shadow:inset 0 -4px #5bc765}
+.levelbtn:disabled{opacity:.34;cursor:not-allowed}
+.levelstars{display:block;font-size:10px;letter-spacing:1px;margin-top:2px}
+.stage{position:relative;padding:10px;background:linear-gradient(#bce8ff 0 16%,#90d26f 16% 100%)}
+.sf-banner{display:flex;justify-content:center;gap:10px;align-items:center;color:#18324b;font-weight:1000;font-size:13px;margin:0 0 7px;text-shadow:0 1px #fff8}
+.mission{max-width:800px;margin:0 auto 9px;display:flex;gap:10px;align-items:center;background:#fffffff2;border:2px solid #ffffffc8;border-radius:16px;padding:8px 11px;box-shadow:0 5px 16px #0002}
+.avatar{font-size:34px;flex:0 0 auto}
+.mission small{display:block;font-size:9px;letter-spacing:.08em;font-weight:1000;color:#667788}
+.missiontext{font-weight:950;line-height:1.25}
+.mapshell{overflow:auto;border:4px solid #315d3c55;border-radius:19px;background:var(--water);padding:7px;box-shadow:inset 0 0 30px #0002}
+.map{display:grid;gap:3px;min-width:max-content;margin:auto}
+.tile{position:relative;width:66px;height:66px;border:0;border-radius:9px;background:linear-gradient(145deg,var(--grass),var(--grass2));display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;cursor:pointer;box-shadow:inset 0 -3px #00000014,0 1px 2px #0004;transition:filter .15s,transform .08s,box-shadow .2s}
+.tile:not(:disabled):active{transform:scale(.92)}
+.tile:not(:disabled):hover{filter:brightness(1.06)}
+.tile.drop-target{outline:5px solid #fff;outline-offset:-5px;filter:brightness(1.2)}
+.tile .icon{font-size:35px;line-height:37px;z-index:5;filter:drop-shadow(0 2px 1px #0002)}
+.tile .tag{position:absolute;left:3px;right:3px;bottom:3px;z-index:8;background:#ffffffed;color:#22303b;border-radius:4px;font-size:7px;line-height:11px;font-weight:1000;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.road{background:var(--road)}
+.road::before{content:"";position:absolute;left:0;right:0;top:29px;height:8px;background:var(--roadline);z-index:1}
+.road::after{content:"";position:absolute;left:0;right:0;top:32px;border-top:2px dashed #fffbd0;z-index:2}
+.road.vertical-road::before{left:29px;top:0;bottom:0;width:8px;height:auto}
+.road.vertical-road::after{left:32px;top:0;bottom:0;width:auto;height:auto;border-top:0;border-left:2px dashed #fffbd0}
+.road.intersection::before{left:0;right:0;top:29px;width:auto;height:8px}
+.road.intersection::after{left:0;right:0;top:32px;bottom:auto;width:auto;height:auto;border-left:0;border-top:2px dashed #fffbd0}
+.road.intersection .crossroad{position:absolute;top:0;bottom:0;left:29px;width:8px;background:var(--roadline);z-index:1}
+.road.intersection .crossroad::after{content:"";position:absolute;top:0;bottom:0;left:3px;border-left:2px dashed #fffbd0}
+.road-decoration{position:absolute;z-index:3;font-size:20px;opacity:.7}
+.customer{cursor:default}
+.customer .building-shell{position:absolute;inset:4px 5px 11px;border-radius:8px;z-index:3;transition:all .25s}
+.customer .icon{font-size:31px}
+.customer.victorian .building-shell{background:linear-gradient(#ef9bb9,#bf5f84);border:2px solid #fff1f5}
+.customer.apartment .building-shell{background:linear-gradient(#9dc1d9,#6289a5);border:2px solid #dcebf5}
+.customer.cornerstore .building-shell{background:linear-gradient(#f0c46f,#c98731);border:2px solid #fff0be}
+.customer.cafe .building-shell{background:linear-gradient(#caa47b,#8c6546);border:2px solid #f1ddca}
+.customer.school .building-shell{background:linear-gradient(#e8b36f,#bd7540);border:2px solid #ffe6c8}
+.customer.hospital .building-shell{background:linear-gradient(#dfe9ef,#9db4c2);border:2px solid #fff}
+.customer.office .building-shell{background:linear-gradient(#9da9bb,#667386);border:2px solid #d8e0eb}
+.customer.hotel .building-shell{background:linear-gradient(#c8a5d8,#8f6ba4);border:2px solid #eadcf1}
+.customer.theater .building-shell{background:linear-gradient(#df827a,#a74243);border:2px solid #ffd6ce}
+.customer.civic .building-shell{background:linear-gradient(#e6ded0,#a9a093);border:2px solid #fff9ec}
+.customer.on{background:linear-gradient(145deg,#fff4a6,#ffd94c);box-shadow:inset 0 0 0 4px #fff9c7,0 0 18px #ffd83dcc}
+.customer.on .building-shell{filter:brightness(1.22);box-shadow:0 0 15px #fff9b5}
+.customer.brownout{background:linear-gradient(145deg,#b8a970,#80744b)}
+.customer.brownout .building-shell{filter:brightness(.72)}
+.energized{box-shadow:inset 0 0 0 4px var(--power),0 0 13px #ffd83dbb;animation:powerPulse .8s ease-in-out infinite alternate}
+.energized::after{content:"⚡";position:absolute;top:2px;right:3px;font-size:12px;z-index:10;filter:drop-shadow(0 0 4px white)}
+.broken{box-shadow:inset 0 0 0 5px var(--danger),0 0 16px #ef5350d9;animation:shake .4s}
+.broken::after{content:"💥";position:absolute;top:1px;right:3px;z-index:12;font-size:15px}
+.hint-house{outline:5px solid #655cff;outline-offset:-5px;animation:hintPulse .7s infinite alternate}
+.hint-tile{outline:5px dashed #655cff;outline-offset:-5px}
+.dockarea{background:linear-gradient(180deg,#1c2c40,#142131);padding:8px;color:#fff!important}
+.docktop{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px;color:#fff!important}
+.docktitle,.docktitle *,#dockStatus,#dockStatus *{color:#fff!important}
+.docktitle{font-weight:1000;letter-spacing:.04em}
+#dockStatus{font-size:11px;font-weight:800;opacity:.95}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.action{min-height:40px;border:0;border-radius:11px;background:#fff;color:#253341;font-weight:1000;padding:7px 11px;box-shadow:0 3px #0003;cursor:pointer}
+.action:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+.dock{display:flex;gap:7px;overflow:auto;padding:2px 1px 5px}
+.tool{flex:0 0 92px;min-height:86px;border:2px solid #ffffff3a;border-radius:13px;background:var(--hud2);padding:5px;font-weight:1000;cursor:grab;touch-action:none;user-select:none}
+.tool,.tool *{color:#fff!important}
+.tool .big{font-size:31px;line-height:34px}
+.tool .tiny{font-size:8px;line-height:10px;font-weight:850;opacity:.9;margin-top:2px}
+.tool[aria-pressed="true"]{background:#4d6be2;border-color:#fff;box-shadow:0 5px #0003;transform:translateY(-2px)}
+.tool.dragging{background:#5f7ae6;transform:scale(1.06)}
+.tool.bulldozer{background:#514037;border-color:#b69a8b;cursor:pointer}
+.event-overlay,.victory-overlay{position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:#09121ecc;backdrop-filter:blur(4px)}
+.eventcard{width:min(510px,96%);border:5px solid #fff;border-radius:28px;padding:23px;text-align:center;color:#fff;box-shadow:0 24px 60px #0008;animation:pop .35s ease}
+.eventcard.cold{background:linear-gradient(145deg,#65bdf8,#234d9d)}
+.eventcard.wind{background:linear-gradient(145deg,#839dac,#3f5664)}
+.eventcard.rain{background:linear-gradient(145deg,#547eae,#243c6a)}
+.eventcard.linefall{background:linear-gradient(145deg,#ef874b,#99312f)}
+.weatherart{font-size:82px;line-height:1;animation:weather 1s ease-in-out infinite alternate}
+.eventcard h2{font-size:34px;margin:6px 0 2px;font-weight:1000}
+.eventsub{font-size:18px;font-weight:900}
+.eventstats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}
+.eventstat{background:#0003;border-radius:12px;padding:8px;font-weight:950}
+.eventstat small{display:block;font-size:9px;opacity:.85}
+.eventexplain{margin-top:10px;background:#0003;border-radius:12px;padding:10px;font-weight:850}
+.respond{width:100%;min-height:54px;margin-top:14px;border:0;border-radius:15px;background:#fff;color:#223142;font-size:17px;font-weight:1000;box-shadow:0 5px #0004;cursor:pointer}
+.repairbanner{display:none;background:#fff2f2;border:4px solid var(--danger);margin:9px;border-radius:16px;padding:10px;font-weight:900}
+.repairbanner.show{display:block}
+.victorycard{width:min(440px,95%);background:linear-gradient(145deg,#fff9cd,#ffd64d);border:5px solid #fff;border-radius:27px;padding:24px;text-align:center;box-shadow:0 22px 55px #0008;animation:pop .35s ease}
+.victorystars{font-size:58px;line-height:1.05;filter:drop-shadow(0 4px 2px #0002)}
+.victorycard h2{margin:5px 0 2px;font-size:32px;color:#243244}
+.victorylevel{font-size:18px;font-weight:1000;color:#394552}
+.victoryscore{display:inline-block;margin-top:9px;background:#ffffffa6;border-radius:999px;padding:7px 15px;font-weight:1000;color:#253242}
+.victorytext{margin-top:10px;font-weight:900;color:#394552}
+.nextbig{width:100%;min-height:55px;margin-top:14px;border:0;border-radius:15px;background:#4d6be2;color:#fff;font-size:18px;font-weight:1000;box-shadow:0 5px #31499d;cursor:pointer}
+.help{background:#f8fafc;padding:8px 10px;font-size:11px;border-top:1px solid #d5dde5}
+.legend{font-weight:1000}
+.hidden{display:none!important}
+@keyframes alarm{from{transform:scale(1)}to{transform:scale(1.06)}}
+@keyframes powerPulse{from{filter:brightness(1)}to{filter:brightness(1.18)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@keyframes hintPulse{from{filter:brightness(1)}to{filter:brightness(1.25)}}
+@keyframes pop{0%{transform:scale(.68);opacity:0}70%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+@keyframes weather{from{transform:translateX(-6px) rotate(-2deg)}to{transform:translateX(6px) rotate(2deg)}}
+@media(max-width:700px){
+  .tile{width:58px;height:58px}.tile .icon{font-size:30px}.map{gap:2px}
+  .pill{font-size:10px;padding:5px 7px}.logo{font-size:16px}.weatherart{font-size:65px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="hud">
+    <div class="hudgroup">
+      <div class="logo">🌉 POWER TOWN SF</div>
+      <div id="levelHud" class="pill levelpill">LEVEL 1</div>
+      <div class="pill">⭐ SCORE <span id="score">0</span></div>
+      <div id="emergencyPill" class="pill emergency-pill hidden">🚨 EMERGENCY</div>
+    </div>
+    <div class="hudgroup">
+      <div class="pill">🏭 <span id="plants">0</span> ONLINE</div>
+      <div id="powerPill" class="pill bad">⚡ <span id="supply">0</span> / <span id="demand">0</span></div>
+      <div class="pill">💡 <span id="lit">0</span>/<span id="total">0</span></div>
+      <div id="breakerPill" class="pill">🔐 CLOSED</div>
+    </div>
+  </header>
+
+  <nav id="levelBar" class="levelbar" aria-label="Game levels"></nav>
+
+  <main class="stage">
+    <div class="sf-banner">🌁 SAN FRANCISCO POWER GRID • BUILD • CONNECT • SURVIVE</div>
+    <section class="mission" aria-live="polite">
+      <div id="avatar" class="avatar">👷🏽‍♀️</div>
+      <div>
+        <small>GRID CONTROL</small>
+        <div id="missionText" class="missiontext"></div>
+      </div>
+    </section>
+
+    <div class="mapshell">
+      <div id="map" class="map" aria-label="Power Town city map"></div>
+    </div>
+
+    <section id="eventOverlay" class="event-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="eventTitle">
+      <div id="eventCard" class="eventcard wind">
+        <div id="weatherArt" class="weatherart">💨🌳</div>
+        <h2 id="eventTitle">HIGH WINDS!</h2>
+        <div id="eventSub" class="eventsub">The grid just changed.</div>
+        <div class="eventstats">
+          <div class="eventstat"><small>SUPPLY</small><span id="eventSupply">0</span></div>
+          <div class="eventstat"><small>DEMAND</small><span id="eventDemand">0</span></div>
+          <div class="eventstat"><small>POWERED</small><span id="eventPowered">0/0</span></div>
+        </div>
+        <div id="eventExplain" class="eventexplain"></div>
+        <button id="respondBtn" class="respond">🚨 RESPOND TO EMERGENCY</button>
+      </div>
+    </section>
+
+    <section id="victoryOverlay" class="victory-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="victoryTitle">
+      <div class="victorycard">
+        <div class="victorystars">⭐ ⭐ ⭐</div>
+        <h2 id="victoryTitle">LEVEL COMPLETE!</h2>
+        <div id="victoryLevel" class="victorylevel"></div>
+        <div id="victoryScore" class="victoryscore"></div>
+        <div id="victoryText" class="victorytext"></div>
+        <button id="nextBtn" class="nextbig">NEXT LEVEL ➡️</button>
+      </div>
+    </section>
+  </main>
+
+  <section id="repairBanner" class="repairbanner" aria-live="polite"></section>
+
+  <section class="dockarea">
+    <div class="docktop">
+      <div class="docktitle">
+        🧰 BUILD DOCK
+        <div id="dockStatus">Drag a part onto the map — or select it and click a square.</div>
+      </div>
+      <div class="actions">
+        <button id="hintBtn" class="action">🔎 HINT</button>
+        <button id="breakerBtn" class="action">🔐 BREAKER</button>
+        <button id="resetBtn" class="action">↻ RESET</button>
+      </div>
+    </div>
+    <div id="dock" class="dock" aria-label="Build tools"></div>
+  </section>
+
+  <footer class="help">
+    <span class="legend">⚡ Power path:</span>
+    🏭 Plant → 🗼 Transmission → ⚙️ Substation → 🔌 Distribution → 🛢️ Transformer → ➖ Power Line → 🏠 Building.
+    <strong>Roads stay on the map.</strong> Powered grid pieces glow and buildings light up as electricity reaches them.
+  </footer>
+</div>
+
+<script>
+(()=>{
+"use strict";
+const app=document.getElementById("app");
+const $=s=>app.querySelector(s);
+
+const LEVELS=[
+  {
+    name:"First Connection", rows:6, cols:8, plantOutput:120, demand:80, coldDemand:170, rescues:0,
+    buildings:[
+      [0,6,"victorian","Victorian Home","🏠"],[1,7,"apartment","Apartment","🏢"],
+      [4,6,"cornerstore","Corner Store","🏪"],[5,7,"cafe","Cafe","☕"]
+    ]
+  },
+  {
+    name:"Branch Out", rows:7, cols:9, plantOutput:150, demand:115, coldDemand:240, rescues:1,
+    buildings:[
+      [0,7,"victorian","Victorian Home","🏠"],[1,8,"apartment","Apartment","🏢"],
+      [3,7,"cornerstore","Corner Store","🏪"],[4,8,"school","School","🏫"],
+      [6,6,"cafe","Cafe","☕"],[6,8,"hospital","Hospital","🏥"]
+    ]
+  },
+  {
+    name:"Grid Protection", rows:8, cols:10, plantOutput:170, demand:150, coldDemand:300, rescues:2,
+    buildings:[
+      [0,8,"victorian","Victorian Home","🏠"],[1,9,"apartment","Apartment","🏢"],
+      [2,7,"school","School","🏫"],[3,9,"cornerstore","Corner Store","🏪"],
+      [5,8,"office","Office","🏬"],[6,6,"cafe","Cafe","☕"],
+      [7,8,"hospital","Hospital","🏥"],[7,9,"hotel","Hotel","🏨"]
+    ]
+  },
+  {
+    name:"Growing City", rows:9, cols:11, plantOutput:170, demand:260, coldDemand:450, rescues:3,
+    buildings:[
+      [0,9,"victorian","Victorian Home","🏠"],[1,10,"apartment","Apartment","🏢"],
+      [2,8,"school","School","🏫"],[3,10,"cornerstore","Corner Store","🏪"],
+      [4,9,"cafe","Cafe","☕"],[5,10,"office","Office","🏬"],
+      [7,8,"hospital","Hospital","🏥"],[7,10,"hotel","Hotel","🏨"],
+      [8,6,"theater","Theater","🎭"],[8,10,"victorian","Victorian Home","🏠"]
+    ]
+  },
+  {
+    name:"Grid Master", rows:10, cols:12, plantOutput:180, demand:360, coldDemand:600, rescues:4,
+    buildings:[
+      [0,10,"victorian","Victorian Home","🏠"],[0,11,"apartment","Apartment","🏢"],
+      [1,9,"school","School","🏫"],[2,11,"cornerstore","Corner Store","🏪"],
+      [3,9,"cafe","Cafe","☕"],[4,11,"office","Office","🏬"],
+      [5,10,"hospital","Hospital","🏥"],[6,8,"hotel","Hotel","🏨"],
+      [7,11,"theater","Theater","🎭"],[8,7,"civic","Civic Building","🏛️"],
+      [9,10,"apartment","Apartment","🏢"],[9,11,"victorian","Victorian Home","🏠"]
+    ]
+  }
+];
+
+const TOOL_INFO={
+  plant:{name:"Power Plant",icon:"🏭",label:"PLANT",tip:"Makes electricity"},
+  tx:{name:"Transmission",icon:"🗼",label:"TRANS",tip:"High voltage"},
+  sub:{name:"Substation",icon:"⚙️",label:"SUB",tip:"Grid control"},
+  dist:{name:"Distribution",icon:"🔌",label:"DIST",tip:"Across town"},
+  transformer:{name:"Transformer",icon:"🛢️",label:"XFMR",tip:"Neighborhood voltage"},
+  service:{name:"Power Line",icon:"➖",label:"LINE",tip:"To buildings"},
+  repair:{name:"Repair Crew",icon:"🧰",label:"REPAIR",tip:"Fix red damage"},
+  erase:{name:"Bulldozer",icon:"🚜",label:"REMOVE",tip:"Remove grid part"}
+};
+const SHUFFLED_TOOLS=["plant","tx","sub","dist","transformer","service","repair"];
+const EVENT_TYPES=["cold","wind","rain","linefall"];
+
+let level=0;
+let unlocked=loadProgress().unlocked;
+let completedStars=loadProgress().stars;
+let pieces=[];
+let selected="plant";
+let breakerOpen=false;
+let currentEvent=null;
+let pendingEvent=null;
+let rescues=0;
+let coldSnap=false;
+let score=0;
+let levelComplete=false;
+let wasHealthy=false;
+let eventHistory=[];
+let hintHouse=null;
+let hintTile=null;
+let dragState={tool:null,pointerId:null,startX:0,startY:0,active:false,button:null,lastTile:null};
+
+function cfg(){return LEVELS[level]}
+function cell(r,c){return r*cfg().cols+c}
+
+function loadProgress(){
+  try{
+    const saved=JSON.parse(localStorage.getItem("powerTownSFProgress")||"{}");
+    return {
+      unlocked:Math.max(1,Math.min(5,Number(saved.unlocked)||1)),
+      stars:Array.isArray(saved.stars)?saved.stars.slice(0,5):[0,0,0,0,0]
+    };
+  }catch(e){return{unlocked:1,stars:[0,0,0,0,0]}}
+}
+function saveProgress(){
+  try{localStorage.setItem("powerTownSFProgress",JSON.stringify({unlocked,stars:completedStars}))}catch(e){}
+}
+
+function buildings(){
+  const out={};
+  cfg().buildings.forEach((b,n)=>{
+    out[cell(b[0],b[1])]={type:b[2],name:b[3],icon:b[4],number:n};
+  });
+  return out;
+}
+
+function roadData(){
+  const horizontal=new Set(),vertical=new Set();
+  const mr=Math.floor(cfg().rows/2), mc=Math.floor(cfg().cols/2);
+  for(let c=0;c<cfg().cols;c++) horizontal.add(cell(mr,c));
+  for(let r=0;r<cfg().rows;r++) vertical.add(cell(r,mc));
+  if(level>=1){
+    const r2=Math.max(1,mr-2);
+    for(let c=1;c<cfg().cols-1;c++) horizontal.add(cell(r2,c));
+  }
+  if(level>=3){
+    const c2=Math.max(1,mc-3);
+    for(let r=1;r<cfg().rows-1;r++) vertical.add(cell(r,c2));
+  }
+  return {horizontal,vertical};
+}
+
+function neighbors(i){
+  const a=[],r=Math.floor(i/cfg().cols),c=i%cfg().cols;
+  if(r>0)a.push(i-cfg().cols);
+  if(r<cfg().rows-1)a.push(i+cfg().cols);
+  if(c>0)a.push(i-1);
+  if(c<cfg().cols-1)a.push(i+1);
+  return a;
+}
+
+function allowedNext(type){
+  return {
+    plant:["tx"],
+    tx:["tx","sub"],
+    sub:["dist"],
+    dist:["dist","transformer"],
+    transformer:["service"],
+    service:["service"]
+  }[type]||[];
+}
+
+function tracePlant(start){
+  const seen=new Set([start]), queue=[start];
+  while(queue.length){
+    const i=queue.shift(),p=pieces[i];
+    if(!p||p.broken)continue;
+    for(const n of neighbors(i)){
+      const np=pieces[n];
+      if(np&&!np.broken&&!seen.has(n)&&allowedNext(p.type).includes(np.type)){
+        seen.add(n); queue.push(n);
+      }
+    }
+  }
+  return seen;
+}
+
+function computeNetwork(){
+  const powered=new Set(), customerMap=buildings();
+  let onlinePlants=0;
+  pieces.forEach((p,i)=>{
+    if(p?.type==="plant"&&!p.broken){
+      const seen=tracePlant(i);
+      seen.forEach(n=>powered.add(n)); // progressive glow even before complete chain
+      const reachesSub=[...seen].some(n=>pieces[n]?.type==="sub");
+      if(reachesSub && neighbors(i).some(n=>pieces[n]?.type==="tx"&&!pieces[n].broken)) onlinePlants++;
+    }
+  });
+
+  const connectedCustomers=[];
+  if(!breakerOpen){
+    Object.keys(customerMap).map(Number).forEach(i=>{
+      if(neighbors(i).some(n=>powered.has(n)&&pieces[n]?.type==="service"&&!pieces[n].broken)){
+        connectedCustomers.push(i);
+      }
+    });
+  }
+
+  const supply=onlinePlants*cfg().plantOutput;
+  const demand=coldSnap?cfg().coldDemand:cfg().demand;
+  let servedCount=0;
+  if(!breakerOpen && supply>0 && connectedCustomers.length){
+    if(supply>=demand) servedCount=connectedCustomers.length;
+    else servedCount=Math.max(0,Math.floor(connectedCustomers.length*(supply/demand)));
+  }
+  const servedCustomers=connectedCustomers.slice(0,servedCount);
+  const healthy=connectedCustomers.length===cfg().buildings.length && supply>=demand && !breakerOpen;
+  return {powered,onlinePlants,connectedCustomers,servedCustomers,supply,demand,healthy};
+}
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function say(html,avatar="👷🏽‍♀️"){
+  $("#missionText").innerHTML=html;
+  $("#avatar").textContent=avatar;
+}
+
+function renderLevelBar(){
+  const bar=$("#levelBar"); bar.innerHTML="";
+  LEVELS.forEach((lv,i)=>{
+    const b=document.createElement("button");
+    b.className="levelbtn"+(i===level?" active":"")+(completedStars[i]===3?" completed":"");
+    b.disabled=i>=unlocked;
+    b.innerHTML=(i>=unlocked?"🔒 ":"")+"LEVEL "+(i+1)+"<br><span style='font-size:9px'>"+lv.name+"</span><span class='levelstars'>"+(completedStars[i]===3?"⭐⭐⭐":"☆☆☆")+"</span>";
+    b.addEventListener("click",()=>loadLevel(i));
+    bar.appendChild(b);
+  });
+}
+
+function startDrag(e,key,button){
+  if(levelComplete||pendingEvent)return;
+  dragState={tool:key,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,active:false,button,lastTile:null};
+  try{button.setPointerCapture(e.pointerId)}catch(_){}
+}
+
+function moveDrag(e){
+  if(e.pointerId!==dragState.pointerId||!dragState.button)return;
+  const d=Math.hypot(e.clientX-dragState.startX,e.clientY-dragState.startY);
+  if(d<8&&!dragState.active)return;
+  if(!dragState.active){
+    dragState.active=true;
+    dragState.button.classList.add("dragging");
+    $("#dockStatus").innerHTML="Dragging <strong>"+TOOL_INFO[dragState.tool].name+"</strong> — release it on a city square.";
+  }
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  const tile=el?.closest?.(".tile[data-buildable='1']");
+  if(dragState.lastTile&&dragState.lastTile!==tile)dragState.lastTile.classList.remove("drop-target");
+  if(tile)tile.classList.add("drop-target");
+  dragState.lastTile=tile;
+}
+
+function endDrag(e){
+  if(e.pointerId!==dragState.pointerId||!dragState.button)return;
+  const wasDrag=dragState.active, key=dragState.tool, tile=dragState.lastTile, button=dragState.button;
+  if(tile)tile.classList.remove("drop-target");
+  button.classList.remove("dragging");
+  dragState={tool:null,pointerId:null,startX:0,startY:0,active:false,button:null,lastTile:null};
+  $("#dockStatus").textContent="Drag a part onto the map — or select it and click a square.";
+  if(wasDrag&&tile) useTool(Number(tile.dataset.index),key);
+}
+
+function renderDock(){
+  const dock=$("#dock"); dock.innerHTML="";
+  const order=[...shuffle(SHUFFLED_TOOLS),"erase"]; // bulldozer always last
+  order.forEach(key=>{
+    const t=TOOL_INFO[key], b=document.createElement("button");
+    b.className="tool"+(key==="erase"?" bulldozer":"");
+    b.setAttribute("aria-pressed",String(key===selected));
+    b.innerHTML="<div class='big'>"+t.icon+"</div><div>"+t.name+"</div><div class='tiny'>"+t.tip+"</div>";
+    b.addEventListener("click",()=>{
+      if(dragState.active)return;
+      selected=key;
+      app.querySelectorAll(".tool").forEach(x=>x.setAttribute("aria-pressed","false"));
+      b.setAttribute("aria-pressed","true");
+      $("#dockStatus").innerHTML="Selected <strong>"+t.name+"</strong>. Click a city square or drag the tool.";
+    });
+    b.addEventListener("pointerdown",e=>startDrag(e,key,b));
+    b.addEventListener("pointermove",moveDrag);
+    b.addEventListener("pointerup",endDrag);
+    b.addEventListener("pointercancel",endDrag);
+    dock.appendChild(b);
+  });
+}
+
+function renderMap(){
+  const n=computeNetwork(), bmap=buildings(), roads=roadData(), map=$("#map");
+  map.style.gridTemplateColumns="repeat("+cfg().cols+",66px)";
+  map.style.gridAutoRows="66px";
+  map.innerHTML="";
+
+  for(let i=0;i<cfg().rows*cfg().cols;i++){
+    const tile=document.createElement("button");
+    tile.type="button";
+    tile.className="tile";
+    tile.dataset.index=i;
+
+    const isH=roads.horizontal.has(i), isV=roads.vertical.has(i);
+    if(isH||isV){
+      tile.classList.add("road");
+      if(isV&&!isH)tile.classList.add("vertical-road");
+      if(isH&&isV){
+        tile.classList.add("intersection");
+        const cross=document.createElement("span");
+        cross.className="crossroad";
+        tile.appendChild(cross);
+      }
+    }
+
+    if(bmap[i]){
+      const building=bmap[i];
+      tile.disabled=true;
+      tile.classList.add("customer",building.type);
+      if(n.servedCustomers.includes(i))tile.classList.add("on");
+      else if(n.connectedCustomers.includes(i)&&n.supply<n.demand)tile.classList.add("brownout");
+      if(i===hintHouse)tile.classList.add("hint-house");
+      tile.innerHTML+="<span class='building-shell'></span><div class='icon'>"+building.icon+"</div><div class='tag'>"+building.name+"</div>";
+    }else{
+      tile.dataset.buildable="1";
+      if(i===hintTile)tile.classList.add("hint-tile");
+      const p=pieces[i];
+      if(p){
+        if(p.broken)tile.classList.add("broken");
+        else if(n.powered.has(i)&&!breakerOpen)tile.classList.add("energized");
+        tile.innerHTML+="<div class='icon'>"+TOOL_INFO[p.type].icon+"</div><div class='tag'>"+TOOL_INFO[p.type].label+"</div>";
+      }else{
+        if(isH||isV){
+          const decor=(i%9===0?"🚋":i%13===0?"🚗":"");
+          tile.innerHTML+=(decor?"<div class='road-decoration'>"+decor+"</div>":"")+"<div class='tag'>ROAD</div>";
+        }else{
+          tile.innerHTML+="<div class='icon' style='opacity:.32'>"+(i%11===0?"🌲":"🌳")+"</div>";
+        }
+      }
+      tile.addEventListener("click",()=>useTool(i,selected));
+    }
+    map.appendChild(tile);
+  }
+
+  $("#levelHud").textContent="LEVEL "+(level+1)+" • "+cfg().name;
+  $("#score").textContent=score;
+  $("#plants").textContent=n.onlinePlants;
+  $("#supply").textContent=n.supply;
+  $("#demand").textContent=n.demand;
+  $("#lit").textContent=n.servedCustomers.length;
+  $("#total").textContent=cfg().buildings.length;
+  $("#breakerPill").textContent=breakerOpen?"🔓 OPEN":"🔐 CLOSED";
+  $("#powerPill").classList.toggle("good",n.supply>=n.demand&&n.supply>0);
+  $("#powerPill").classList.toggle("bad",!(n.supply>=n.demand&&n.supply>0));
+  $("#emergencyPill").classList.toggle("hidden",!(currentEvent||pendingEvent));
+}
+
+function useTool(i,key){
+  if(levelComplete||pendingEvent)return;
+  hintHouse=null; hintTile=null;
+
+  if(key==="erase"){
+    if(pieces[i]){
+      pieces[i]=null;
+      score=Math.max(0,score-5);
+      say("🚜 Grid piece removed. The <strong>road stays</strong>.","🚜");
+    }
+    renderMap(); autoCheck(); return;
+  }
+
+  if(key==="repair"){
+    if(pieces[i]?.broken){
+      pieces[i].broken=false;
+      pieces[i].fault=false;
+      score+=75;
+      say("🧰 <strong>Repair complete!</strong> Checking the grid…","🧰");
+      renderMap(); autoCheck();
+    }else{
+      say("🧰 Find the grid part glowing <strong>red</strong>.","🧰");
+    }
+    return;
+  }
+
+  pieces[i]={type:key,broken:false,fault:false};
+  score+=5;
+  renderMap();
+  autoCheck();
+}
+
+function autoCheck(){
+  if(levelComplete||pendingEvent)return;
+  if(currentEvent){checkEvent();return}
+
+  const n=computeNetwork();
+  if(n.healthy&&!wasHealthy){
+    wasHealthy=true;
+    score+=200;
+    if(level===0){
+      finishLevel();
+    }else if(rescues<cfg().rescues){
+      say("✅ <strong>GRID ONLINE!</strong> Emergency incoming…","😮");
+      startEmergency();
+    }
+  }else if(!n.healthy){
+    wasHealthy=false;
+    if(n.connectedCustomers.length>0&&n.connectedCustomers.length<cfg().buildings.length){
+      say("💡 Electricity has reached <strong>"+n.connectedCustomers.length+"/"+cfg().buildings.length+"</strong> buildings. Keep extending the glowing grid.");
+    }else if(n.connectedCustomers.length===cfg().buildings.length&&n.supply<n.demand){
+      say("⚡ Your connections work, but the city needs <strong>"+n.demand+"</strong> power and you only have <strong>"+n.supply+"</strong>. Add another power plant.","⚠️");
+    }
+  }
+  renderMap();
+}
+
+function showHint(){
+  if(levelComplete||pendingEvent)return;
+  const n=computeNetwork(), bmap=buildings();
+  hintHouse=null; hintTile=null;
+
+  if(n.connectedCustomers.length===cfg().buildings.length){
+    if(n.supply<n.demand)say("🔎 The lines are connected. The problem is <strong>generation</strong> — add another connected power plant.","🔎");
+    else say("💡 Every building is connected. If the city is dark, check the <strong>breaker</strong> or repair a red fault.","🔎");
+    renderMap(); return;
+  }
+
+  const dark=Object.keys(bmap).map(Number).find(i=>!n.connectedCustomers.includes(i));
+  hintHouse=dark;
+  hintTile=neighbors(dark).find(i=>!bmap[i]&&!pieces[i]);
+  say("🔎 I marked a dark building. Bring a connected ➖ <strong>Power Line</strong> to the dashed square beside it.","🔎");
+  renderMap();
+}
+
+function impactCandidates(types){
+  const before=computeNetwork().servedCustomers.length;
+  const candidates=[];
+  pieces.forEach((p,i)=>{
+    if(!p||p.broken||!types.includes(p.type))return;
+    p.broken=true;
+    const after=computeNetwork().servedCustomers.length;
+    p.broken=false;
+    candidates.push({i,impact:before-after});
+  });
+  candidates.sort((a,b)=>b.impact-a.impact);
+  return candidates;
+}
+
+function chooseEvent(){
+  let pool=EVENT_TYPES.filter(t=>!eventHistory.includes(t));
+  if(!pool.length){eventHistory=[];pool=[...EVENT_TYPES]}
+  const type=pool[Math.floor(Math.random()*pool.length)];
+  eventHistory.push(type);
+  return type;
+}
+
+function startEmergency(){
+  if(level===0||levelComplete||pendingEvent||currentEvent)return;
+  const type=chooseEvent();
+  pendingEvent=type;
+
+  if(type==="cold"){
+    coldSnap=true;
+  }else{
+    const allowed=type==="linefall"?["tx","dist","service"]:type==="rain"?["dist","service"]:["tx","dist","service","transformer"];
+    const impacts=impactCandidates(allowed);
+    if(impacts.length){
+      const bestImpact=impacts[0].impact;
+      const best=impacts.filter(x=>x.impact===bestImpact);
+      const chosen=best[Math.floor(Math.random()*best.length)].i;
+      pieces[chosen].broken=true;
+      if(type==="rain"){
+        pieces[chosen].fault=true;
+        breakerOpen=true;
+      }
+      currentEvent={type,index:chosen};
+    }else{
+      pendingEvent=null;
+      startEmergency();
+      return;
+    }
+  }
+
+  renderMap(); // HUD changes BEFORE overlay
+  showEmergencyOverlay(type);
+}
+
+function showEmergencyOverlay(type){
+  const n=computeNetwork(), card=$("#eventCard");
+  card.className="eventcard "+type;
+
+  if(type==="cold"){
+    $("#weatherArt").textContent="🥶❄️";
+    $("#eventTitle").textContent="COLD SNAP!";
+    $("#eventSub").textContent="Heating demand just surged.";
+    $("#eventExplain").innerHTML="Demand jumped to <strong>"+n.demand+"</strong>. Your current connected generation supplies <strong>"+n.supply+"</strong>. Bring more generation online if supply is too low.";
+  }else if(type==="wind"){
+    $("#weatherArt").textContent="💨🌳";
+    $("#eventTitle").textContent="HIGH WINDS!";
+    $("#eventSub").textContent="The electrical grid took damage.";
+    $("#eventExplain").innerHTML="A live grid component was damaged. The top HUD now shows only <strong>"+n.servedCustomers.length+"/"+cfg().buildings.length+"</strong> buildings receiving power.";
+  }else if(type==="rain"){
+    $("#weatherArt").textContent="🌧️⚡";
+    $("#eventTitle").textContent="HEAVY RAIN!";
+    $("#eventSub").textContent="A fault tripped the breaker.";
+    $("#eventExplain").innerHTML="The protective breaker opened, so the HUD now shows <strong>0 powered buildings</strong>. Repair the red fault before closing the breaker.";
+  }else{
+    $("#weatherArt").textContent="🗼💥";
+    $("#eventTitle").textContent="POWER LINE DOWN!";
+    $("#eventSub").textContent="A live line has fallen.";
+    $("#eventExplain").innerHTML="The damaged line cut power downstream. Watch the powered-building count at the top, then find the red grid piece.";
+  }
+
+  $("#eventSupply").textContent=n.supply;
+  $("#eventDemand").textContent=n.demand;
+  $("#eventPowered").textContent=n.servedCustomers.length+"/"+cfg().buildings.length;
+  $("#eventOverlay").classList.remove("hidden");
+}
+
+function respondToEmergency(){
+  if(!pendingEvent)return;
+  const type=pendingEvent;
+  pendingEvent=null;
+  $("#eventOverlay").classList.add("hidden");
+
+  if(type==="cold")currentEvent={type:"cold"};
+
+  if(type==="cold"){
+    $("#repairBanner").innerHTML="🥶 <strong>COLD SNAP:</strong> Demand is "+cfg().coldDemand+". Add enough connected generation to restore the whole city.";
+  }else if(type==="rain"){
+    $("#repairBanner").innerHTML="🌧️⚡ <strong>RAIN FAULT:</strong> Repair the red fault first, then close the breaker.";
+  }else if(type==="wind"){
+    $("#repairBanner").innerHTML="💨 <strong>WIND DAMAGE:</strong> Send the 🧰 Repair Crew to the red damaged grid piece.";
+  }else{
+    $("#repairBanner").innerHTML="🗼 <strong>POWER LINE DOWN:</strong> Repair the red line and restore customers downstream.";
+  }
+  $("#repairBanner").classList.add("show");
+  say("🚨 <strong>Restore Power Town.</strong> The HUD will update as you fix the emergency.","🚨");
+  renderMap();
+  autoCheck();
+}
+
+function checkEvent(){
+  if(!currentEvent)return;
+  const n=computeNetwork();
+  let solved=false;
+
+  if(currentEvent.type==="cold"){
+    solved=n.healthy;
+  }else if(currentEvent.type==="rain"){
+    solved=!pieces[currentEvent.index]?.broken&&!breakerOpen&&n.healthy;
+  }else{
+    solved=!pieces[currentEvent.index]?.broken&&n.healthy;
+  }
+
+  if(!solved){renderMap();return}
+
+  rescues++;
+  score+=500;
+  currentEvent=null;
+  coldSnap=false;
+  wasHealthy=true;
+  $("#repairBanner").classList.remove("show");
+  say("⭐ <strong>POWER RESTORED!</strong> Emergency "+rescues+" of "+cfg().rescues+" cleared.","🥳");
+  renderMap();
+
+  if(rescues>=cfg().rescues){
+    finishLevel();
+  }else{
+    setTimeout(()=>{
+      if(!levelComplete){
+        say("⚠️ Grid restored. <strong>Another emergency is incoming…</strong>","😮");
+        startEmergency();
+      }
+    },700);
+  }
+}
+
+function finishLevel(){
+  if(levelComplete)return;
+  levelComplete=true;
+  score+=300;
+  completedStars[level]=3;
+  if(level<4)unlocked=Math.max(unlocked,level+2);
+  saveProgress();
+
+  $("#victoryTitle").textContent=level===4?"GRID MASTER!":"LEVEL COMPLETE!";
+  $("#victoryLevel").textContent="Level "+(level+1)+" • "+cfg().name;
+  $("#victoryScore").textContent="⭐ Score: "+score;
+  $("#victoryText").innerHTML=level===4
+    ?"🌉 You completed all <strong>5 Power Town SF levels!</strong>"
+    :"🔓 <strong>Level "+(level+2)+"</strong> unlocked! Your ⭐⭐⭐ now appear on the level bar.";
+  $("#nextBtn").textContent=level===4?"🏆 GAME COMPLETE":"NEXT LEVEL ➡️";
+  $("#nextBtn").disabled=level===4;
+  $("#victoryOverlay").classList.remove("hidden");
+  renderLevelBar();
+  renderMap();
+}
+
+function toggleBreaker(){
+  if(levelComplete||pendingEvent)return;
+  if(breakerOpen){
+    const unresolved=pieces.some(p=>p?.broken&&p.fault);
+    if(unresolved){
+      say("⚠️ Repair the <strong>red fault first</strong>. Do not close the breaker onto the fault.","🚨");
+      return;
+    }
+    breakerOpen=false;
+    say("🔐 Breaker closed. Electricity can flow again.");
+  }else{
+    breakerOpen=true;
+    say("🔓 Breaker opened. The city is disconnected from the grid.");
+  }
+  renderMap();
+  autoCheck();
+}
+
+function resetLevel(){
+  if(!confirm("Reset this level and rebuild the grid?"))return;
+  loadLevel(level);
+}
+
+function loadLevel(i){
+  if(i>=unlocked)return;
+  level=i;
+  pieces=Array(cfg().rows*cfg().cols).fill(null);
+  selected="plant";
+  breakerOpen=false;
+  currentEvent=null;
+  pendingEvent=null;
+  rescues=0;
+  coldSnap=false;
+  score=0;
+  levelComplete=false;
+  wasHealthy=false;
+  eventHistory=[];
+  hintHouse=null;
+  hintTile=null;
+  $("#eventOverlay").classList.add("hidden");
+  $("#victoryOverlay").classList.add("hidden");
+  $("#repairBanner").classList.remove("show");
+
+  if(level===0){
+    say("Build a working grid and light all <strong>4 San Francisco buildings</strong>. The game checks your grid automatically.");
+  }else{
+    say("Power every building. When your grid works, a <strong>city emergency starts automatically</strong>.");
+  }
+  renderLevelBar();
+  renderDock();
+  renderMap();
+}
+
+$("#hintBtn").addEventListener("click",showHint);
+$("#breakerBtn").addEventListener("click",toggleBreaker);
+$("#resetBtn").addEventListener("click",resetLevel);
+$("#respondBtn").addEventListener("click",respondToEmergency);
+$("#nextBtn").addEventListener("click",()=>{if(level<4)loadLevel(level+1)});
+
+loadLevel(0);
+})();
+</script>
+</body>
+</html>
