@@ -936,7 +936,7 @@ $("#nextBtn").addEventListener("click",()=>{if(level<4)loadLevel(level+1)});
 document.querySelectorAll("[data-difficulty]").forEach(button=>button.addEventListener("click",()=>{
   difficulty=button.dataset.difficulty;
   saveProgress();
-  $("#startOverlay").classList.add("hidden");
+  document.getElementById("startOverlay").classList.add("hidden");
   loadLevel(0);
 }));
 })();
