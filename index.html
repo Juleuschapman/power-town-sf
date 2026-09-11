@@ -120,6 +120,9 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
 .hidden{display:none!important}
 .budget-pill{background:#214d3a;color:#b9ffd0;border-color:#70d99a}
 .budget-pill.shake{animation:shake .35s 2;background:#a83d3d;color:#fff}
+.reliability-pill{background:#58491c;color:#ffe98a;border-color:#f8d45c}
+.zone-valid{outline:4px solid #64e58a;outline-offset:-4px;background:linear-gradient(145deg,#83e59a,#4aa967)!important}
+.zone-invalid{opacity:.72}
 .plant-picker{display:none;gap:8px;flex-wrap:wrap;background:#18283a;border:2px solid #ffffff2b;border-radius:14px;padding:9px;margin:0 0 8px}
 .plant-picker.show{display:flex}
 .plant-card{flex:1 1 145px;min-height:120px;border:2px solid #ffffff3a;border-radius:12px;background:#2b4057;color:#fff;text-align:left;padding:9px;cursor:pointer;font-weight:900}
@@ -149,6 +152,8 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
       <div id="levelHud" class="pill levelpill">LEVEL 1</div>
       <div class="pill">⭐ SCORE <span id="score">0</span></div>
       <div id="budgetPill" class="pill budget-pill hidden">💰 $<span id="budget">1000</span></div>
+      <div id="reliabilityPill" class="pill reliability-pill hidden">🔁 RELIABILITY: <span id="reliability">100%</span></div>
+      <div id="crewsPill" class="pill hidden">🧰 REPAIR CREWS: <span id="crews">2/2</span></div>
       <div id="emergencyPill" class="pill emergency-pill hidden">🚨 EMERGENCY</div>
     </div>
     <div class="hudgroup">
@@ -235,6 +240,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
     <div class="difficulty-row">
       <button class="difficulty-btn" data-difficulty="easy">EASY</button>
       <button class="difficulty-btn" data-difficulty="medium">MEDIUM</button>
+      <button class="difficulty-btn" data-difficulty="hard">HARD</button>
     </div>
   </div>
 </section>
@@ -319,6 +325,7 @@ let unlocked=savedProgress.unlocked;
 let completedStars=savedProgress.stars;
 let difficulty=savedProgress.difficulty||"easy";
 let budget=1000;
+let repairCrews=2, busyCrews=0;
 let pieces=[];
 let selected="plant";
 let breakerOpen=false;
@@ -343,7 +350,7 @@ function loadProgress(){
     return {
       unlocked:Math.max(1,Math.min(5,Number(saved.unlocked)||1)),
       stars:Array.isArray(saved.stars)?saved.stars.slice(0,5):[0,0,0,0,0],
-      difficulty:saved.difficulty==="medium"?"medium":"easy"
+      difficulty:["easy","medium","hard"].includes(saved.difficulty)?saved.difficulty:"easy"
     };
   }catch(e){return{unlocked:1,stars:[0,0,0,0,0],difficulty:"easy"}}
 }
@@ -373,6 +380,27 @@ function roadData(){
     for(let r=1;r<cfg().rows-1;r++) vertical.add(cell(r,c2));
   }
   return {horizontal,vertical};
+}
+
+function plantZone(i,type){
+  const r=Math.floor(i/cfg().cols),c=i%cfg().cols, roads=roadData(), bmap=buildings();
+  if(roads.horizontal.has(i)||roads.vertical.has(i)||bmap[i])return false;
+  if(type==="solar")return c<=Math.max(2,Math.floor(cfg().cols*.3))&&r>=1;
+  if(type==="wind")return c>=Math.floor(cfg().cols*.7)&&r<=cfg().rows-2;
+  if(type==="gas")return r>=Math.floor(cfg().rows*.35)&&r<=Math.ceil(cfg().rows*.7)&&c>=2&&c<cfg().cols-2;
+  return r<=2&&c>=Math.floor(cfg().cols*.45)&&c<cfg().cols-1;
+}
+
+function reliabilityScore(n){
+  if(difficulty!=="hard")return 100;
+  const gridPieces=pieces.filter(Boolean).length;
+  if(!gridPieces)return 0;
+  let redundant=0;
+  Object.keys(buildings()).forEach(key=>{
+    const i=Number(key), routes=neighbors(i).filter(x=>pieces[x]?.type==="service"&&!pieces[x].broken);
+    if(routes.length>1)redundant++;
+  });
+  return Math.min(100,Math.round(45+(redundant/Math.max(1,cfg().buildings.length))*55));
 }
 
 function neighbors(i){
@@ -515,7 +543,7 @@ function renderDock(){
   Object.entries(PLANTS).forEach(([key,p])=>{
     const card=document.createElement("button"); card.className="plant-card";
     card.innerHTML="<span class='plant-icon'>"+p.icon+"</span> <strong>"+p.name+"</strong><small>⚡ "+p.output+(difficulty==="medium"?" • 💰 $"+p.cost:"")+"</small><small>✓ "+p.strength+"</small><small>⚠ "+p.weakness+"</small>";
-    card.addEventListener("click",()=>{selected="plant:"+key;picker.classList.remove("show");$("#dockStatus").innerHTML="Selected <strong>"+p.name+"</strong>. Click or drag onto a square.";});
+    card.addEventListener("click",()=>{selected="plant:"+key;picker.classList.remove("show");$("#dockStatus").innerHTML="Selected <strong>"+p.name+"</strong>. Click or drag onto a square.";renderMap();});
     picker.appendChild(card);
   });
   const order=[...shuffle(SHUFFLED_TOOLS),"erase"]; // bulldozer always last
@@ -578,6 +606,11 @@ function renderMap(){
       tile.innerHTML+="<span class='building-shell'></span><div class='icon'>"+building.icon+"</div><div class='tag'>"+building.name+"</div>";
     }else{
       tile.dataset.buildable="1";
+      const selectedPlant=String(selected).startsWith("plant:")?String(selected).split(":")[1]:null;
+      if(difficulty==="hard"&&selectedPlant){
+        if(plantZone(i,selectedPlant))tile.classList.add("zone-valid");
+        else tile.classList.add("zone-invalid");
+      }
       if(i===hintTile)tile.classList.add("hint-tile");
       const p=pieces[i];
       if(p){
@@ -603,6 +636,11 @@ function renderMap(){
   $("#score").textContent=score;
   $("#budget").textContent=budget;
   $("#budgetPill").classList.toggle("hidden",difficulty!=="medium");
+  const reliability=reliabilityScore(n);
+  $("#reliability").textContent=reliability+"% "+(reliability>=80?"STRONG":reliability>=50?"FAIR":"LOW");
+  $("#reliabilityPill").classList.toggle("hidden",difficulty!=="hard");
+  $("#crews").textContent=(repairCrews-busyCrews)+"/"+repairCrews;
+  $("#crewsPill").classList.toggle("hidden",difficulty!=="hard");
   $("#plants").textContent=n.onlinePlants;
   $("#supply").textContent=n.supply;
   $("#demand").textContent=n.demand;
@@ -631,6 +669,13 @@ function useTool(i,key){
 
   const plantType=String(key).startsWith("plant:")?String(key).split(":")[1]:key==="plant"?"solar":null;
 
+  if(plantType&&difficulty==="hard"&&!plantZone(i,plantType)){
+    say("🚫 <strong>This plant cannot be built here.</strong> Choose a glowing zone.","🚫");
+    const badTile=app.querySelector('.tile[data-index="'+i+'"]');
+    if(badTile){badTile.classList.add("broken");setTimeout(()=>badTile.classList.remove("broken"),450)}
+    return;
+  }
+
   if(key==="erase"){
     if(pieces[i]){
       if(difficulty==="medium") budget+=Math.round((pieces[i].cost||0)*.5);
@@ -643,6 +688,15 @@ function useTool(i,key){
 
   if(key==="repair"){
     if(pieces[i]?.broken){
+      if(difficulty==="hard"){
+        if(busyCrews>=repairCrews){say("🧰 <strong>All repair crews are busy.</strong>","🧰");return;}
+        busyCrews++;
+        const repairTime=pieces[i].repairKind==="tree"?3000:pieces[i].repairKind==="line"?4000:3000;
+        say("🧰 Repair crew dispatched. Restoring power in <strong>"+Math.ceil(repairTime/1000)+" seconds</strong>…","🧰");
+        renderMap();
+        setTimeout(()=>{if(pieces[i]?.broken){pieces[i].broken=false;pieces[i].fault=false;busyCrews--;score+=75;say("⚡ <strong>Repair complete!</strong> Power can flow again.","🧰");renderMap();autoCheck();}},repairTime);
+        return;
+      }
       if(!canAfford(COSTS.repair))return;
       spend(COSTS.repair);
       pieces[i].broken=false;
@@ -746,6 +800,7 @@ function startEmergency(){
       const best=impacts.filter(x=>x.impact===bestImpact);
       const chosen=best[Math.floor(Math.random()*best.length)].i;
       pieces[chosen].broken=true;
+      pieces[chosen].repairKind=type==="wind"?"line":type==="rain"?"short":"line";
       if(type==="rain"){
         pieces[chosen].fault=true;
         breakerOpen=true;
@@ -909,6 +964,7 @@ function loadLevel(i){
   coldSnap=false;
   score=0;
   budget=1000;
+  busyCrews=0;
   levelComplete=false;
   wasHealthy=false;
   eventHistory=[];
