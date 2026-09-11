@@ -118,6 +118,16 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
 .help{background:#f8fafc;padding:8px 10px;font-size:11px;border-top:1px solid #d5dde5}
 .legend{font-weight:1000}
 .hidden{display:none!important}
+.budget-pill{background:#214d3a;color:#b9ffd0;border-color:#70d99a}
+.budget-pill.shake{animation:shake .35s 2;background:#a83d3d;color:#fff}
+.plant-picker{display:none;gap:8px;flex-wrap:wrap;background:#18283a;border:2px solid #ffffff2b;border-radius:14px;padding:9px;margin:0 0 8px}
+.plant-picker.show{display:flex}
+.plant-card{flex:1 1 145px;min-height:120px;border:2px solid #ffffff3a;border-radius:12px;background:#2b4057;color:#fff;text-align:left;padding:9px;cursor:pointer;font-weight:900}
+.plant-card:hover,.plant-card.selected{background:#4d6be2;border-color:#fff}
+.plant-card .plant-icon{font-size:27px}.plant-card small{display:block;font-size:10px;line-height:1.25;margin-top:3px;color:#fff}
+.start-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:18px;background:#09121ee8}
+.start-card{width:min(520px,96%);background:linear-gradient(145deg,#fff9cd,#ffd64d);border:5px solid #fff;border-radius:28px;padding:26px;text-align:center;box-shadow:0 24px 60px #0008}
+.start-card h1{margin:0;color:#243244;font-size:38px}.start-card p{font-weight:850;color:#394552}.difficulty-row{display:flex;gap:10px;margin-top:18px}.difficulty-btn{flex:1;min-height:58px;border:0;border-radius:14px;background:#4d6be2;color:#fff;font-size:18px;font-weight:1000;cursor:pointer;box-shadow:0 5px #31499d}.difficulty-btn:hover{filter:brightness(1.1)}
 @keyframes alarm{from{transform:scale(1)}to{transform:scale(1.06)}}
 @keyframes powerPulse{from{filter:brightness(1)}to{filter:brightness(1.18)}}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
@@ -138,6 +148,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
       <div class="logo">🌉 POWER TOWN SF</div>
       <div id="levelHud" class="pill levelpill">LEVEL 1</div>
       <div class="pill">⭐ SCORE <span id="score">0</span></div>
+      <div id="budgetPill" class="pill budget-pill hidden">💰 $<span id="budget">1000</span></div>
       <div id="emergencyPill" class="pill emergency-pill hidden">🚨 EMERGENCY</div>
     </div>
     <div class="hudgroup">
@@ -205,6 +216,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
         <button id="resetBtn" class="action">↻ RESET</button>
       </div>
     </div>
+    <div id="plantPicker" class="plant-picker" aria-label="Power plant choices"></div>
     <div id="dock" class="dock" aria-label="Build tools"></div>
   </section>
 
@@ -214,6 +226,18 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
     <strong>Roads stay on the map.</strong> Powered grid pieces glow and buildings light up as electricity reaches them.
   </footer>
 </div>
+
+<section id="startOverlay" class="start-overlay" role="dialog" aria-modal="true">
+  <div class="start-card">
+    <h1>🌉 POWER TOWN SF</h1>
+    <p>Build a working San Francisco power grid, survive emergencies, and light every building.</p>
+    <strong>Choose Difficulty</strong>
+    <div class="difficulty-row">
+      <button class="difficulty-btn" data-difficulty="easy">EASY</button>
+      <button class="difficulty-btn" data-difficulty="medium">MEDIUM</button>
+    </div>
+  </div>
+</section>
 
 <script>
 (()=>{
@@ -279,12 +303,22 @@ const TOOL_INFO={
   repair:{name:"Repair Crew",icon:"🧰",label:"REPAIR",tip:"Fix red damage"},
   erase:{name:"Bulldozer",icon:"🚜",label:"REMOVE",tip:"Remove grid part"}
 };
+const PLANTS={
+  solar:{name:"SOLAR FARM",icon:"☀️",output:90,cost:150,strength:"Cheap",weakness:"Weak in heavy rain"},
+  wind:{name:"WIND FARM",icon:"💨",output:110,cost:180,strength:"Inexpensive generation",weakness:"Can be damaged by high winds"},
+  gas:{name:"NATURAL GAS PLANT",icon:"🔥",output:170,cost:300,strength:"Reliable in cold snaps",weakness:"More expensive"},
+  nuclear:{name:"NUCLEAR PLANT",icon:"☢️",output:220,cost:500,strength:"Very high steady output",weakness:"Expensive to build and repair"}
+};
+const COSTS={tx:25,sub:100,dist:15,transformer:60,service:10,repair:40};
 const SHUFFLED_TOOLS=["plant","tx","sub","dist","transformer","service","repair"];
 const EVENT_TYPES=["cold","wind","rain","linefall"];
 
 let level=0;
-let unlocked=loadProgress().unlocked;
-let completedStars=loadProgress().stars;
+const savedProgress=loadProgress();
+let unlocked=savedProgress.unlocked;
+let completedStars=savedProgress.stars;
+let difficulty=savedProgress.difficulty||"easy";
+let budget=1000;
 let pieces=[];
 let selected="plant";
 let breakerOpen=false;
@@ -308,12 +342,13 @@ function loadProgress(){
     const saved=JSON.parse(localStorage.getItem("powerTownSFProgress")||"{}");
     return {
       unlocked:Math.max(1,Math.min(5,Number(saved.unlocked)||1)),
-      stars:Array.isArray(saved.stars)?saved.stars.slice(0,5):[0,0,0,0,0]
+      stars:Array.isArray(saved.stars)?saved.stars.slice(0,5):[0,0,0,0,0],
+      difficulty:saved.difficulty==="medium"?"medium":"easy"
     };
-  }catch(e){return{unlocked:1,stars:[0,0,0,0,0]}}
+  }catch(e){return{unlocked:1,stars:[0,0,0,0,0],difficulty:"easy"}}
 }
 function saveProgress(){
-  try{localStorage.setItem("powerTownSFProgress",JSON.stringify({unlocked,stars:completedStars}))}catch(e){}
+  try{localStorage.setItem("powerTownSFProgress",JSON.stringify({unlocked,stars:completedStars,difficulty}))}catch(e){}
 }
 
 function buildings(){
@@ -383,7 +418,8 @@ function computeNetwork(){
       const seen=tracePlant(i);
       seen.forEach(n=>powered.add(n)); // progressive glow even before complete chain
       const reachesSub=[...seen].some(n=>pieces[n]?.type==="sub");
-      if(reachesSub && neighbors(i).some(n=>pieces[n]?.type==="tx"&&!pieces[n].broken)) onlinePlants++;
+      p.online=reachesSub && neighbors(i).some(n=>pieces[n]?.type==="tx"&&!pieces[n].broken);
+      if(p.online) onlinePlants++;
     }
   });
 
@@ -396,7 +432,14 @@ function computeNetwork(){
     });
   }
 
-  const supply=onlinePlants*cfg().plantOutput;
+  const operatingPlants=pieces.filter(p=>p?.type==="plant"&&!p.broken&&p.online);
+  const supply=operatingPlants.reduce((sum,p)=>{
+    let out=p.output||cfg().plantOutput;
+    if(coldSnap&&p.plantType!=="gas"&&p.plantType!=="nuclear") out*=1;
+    if(currentEvent?.type==="rain"&&p.plantType==="solar") out*=.4;
+    if(currentEvent?.type==="wind"&&p.plantType==="wind") out*=1.1;
+    return sum+Math.round(out);
+  },0);
   const demand=coldSnap?cfg().coldDemand:cfg().demand;
   let servedCount=0;
   if(!breakerOpen && supply>0 && connectedCustomers.length){
@@ -468,14 +511,26 @@ function endDrag(e){
 
 function renderDock(){
   const dock=$("#dock"); dock.innerHTML="";
+  const picker=$("#plantPicker"); picker.innerHTML="";
+  Object.entries(PLANTS).forEach(([key,p])=>{
+    const card=document.createElement("button"); card.className="plant-card";
+    card.innerHTML="<span class='plant-icon'>"+p.icon+"</span> <strong>"+p.name+"</strong><small>⚡ "+p.output+(difficulty==="medium"?" • 💰 $"+p.cost:"")+"</small><small>✓ "+p.strength+"</small><small>⚠ "+p.weakness+"</small>";
+    card.addEventListener("click",()=>{selected="plant:"+key;picker.classList.remove("show");$("#dockStatus").innerHTML="Selected <strong>"+p.name+"</strong>. Click or drag onto a square.";});
+    picker.appendChild(card);
+  });
   const order=[...shuffle(SHUFFLED_TOOLS),"erase"]; // bulldozer always last
   order.forEach(key=>{
     const t=TOOL_INFO[key], b=document.createElement("button");
     b.className="tool"+(key==="erase"?" bulldozer":"");
-    b.setAttribute("aria-pressed",String(key===selected));
+    b.setAttribute("aria-pressed",String(key===selected||key==="plant"&&String(selected).startsWith("plant:")));
     b.innerHTML="<div class='big'>"+t.icon+"</div><div>"+t.name+"</div><div class='tiny'>"+t.tip+"</div>";
     b.addEventListener("click",()=>{
       if(dragState.active)return;
+      if(key==="plant"){
+        picker.classList.toggle("show");
+        $("#dockStatus").textContent="Choose a power plant type above.";
+        return;
+      }
       selected=key;
       app.querySelectorAll(".tool").forEach(x=>x.setAttribute("aria-pressed","false"));
       b.setAttribute("aria-pressed","true");
@@ -528,7 +583,9 @@ function renderMap(){
       if(p){
         if(p.broken)tile.classList.add("broken");
         else if(n.powered.has(i)&&!breakerOpen)tile.classList.add("energized");
-        tile.innerHTML+="<div class='icon'>"+TOOL_INFO[p.type].icon+"</div><div class='tag'>"+TOOL_INFO[p.type].label+"</div>";
+        const icon=p.type==="plant"?(PLANTS[p.plantType]?.icon||"🏭"):TOOL_INFO[p.type].icon;
+        const label=p.type==="plant"?(PLANTS[p.plantType]?.name||"PLANT"):TOOL_INFO[p.type].label;
+        tile.innerHTML+="<div class='icon'>"+icon+"</div><div class='tag'>"+label+"</div>";
       }else{
         if(isH||isV){
           const decor=(i%9===0?"🚋":i%13===0?"🚗":"");
@@ -544,6 +601,8 @@ function renderMap(){
 
   $("#levelHud").textContent="LEVEL "+(level+1)+" • "+cfg().name;
   $("#score").textContent=score;
+  $("#budget").textContent=budget;
+  $("#budgetPill").classList.toggle("hidden",difficulty!=="medium");
   $("#plants").textContent=n.onlinePlants;
   $("#supply").textContent=n.supply;
   $("#demand").textContent=n.demand;
@@ -555,12 +614,26 @@ function renderMap(){
   $("#emergencyPill").classList.toggle("hidden",!(currentEvent||pendingEvent));
 }
 
+function pieceCost(key){
+  if(key==="plant") return PLANTS["solar"].cost;
+  if(String(key).startsWith("plant:")) return PLANTS[String(key).split(":")[1]].cost;
+  return COSTS[key]||0;
+}
+function canAfford(cost){
+  if(difficulty!=="medium"||budget>=cost)return true;
+  const pill=$("#budgetPill");pill.classList.add("shake");setTimeout(()=>pill.classList.remove("shake"),800);
+  say("💰 <strong>Not enough money.</strong>","💰");return false;
+}
+function spend(cost){if(difficulty==="medium")budget-=cost}
 function useTool(i,key){
   if(levelComplete||pendingEvent)return;
   hintHouse=null; hintTile=null;
 
+  const plantType=String(key).startsWith("plant:")?String(key).split(":")[1]:key==="plant"?"solar":null;
+
   if(key==="erase"){
     if(pieces[i]){
+      if(difficulty==="medium") budget+=Math.round((pieces[i].cost||0)*.5);
       pieces[i]=null;
       score=Math.max(0,score-5);
       say("🚜 Grid piece removed. The <strong>road stays</strong>.","🚜");
@@ -570,6 +643,8 @@ function useTool(i,key){
 
   if(key==="repair"){
     if(pieces[i]?.broken){
+      if(!canAfford(COSTS.repair))return;
+      spend(COSTS.repair);
       pieces[i].broken=false;
       pieces[i].fault=false;
       score+=75;
@@ -581,7 +656,11 @@ function useTool(i,key){
     return;
   }
 
-  pieces[i]={type:key,broken:false,fault:false};
+  const actualType=plantType?"plant":key;
+  const cost=pieceCost(key);
+  if(!canAfford(cost))return;
+  spend(cost);
+  pieces[i]={type:actualType,plantType:plantType||null,output:plantType?PLANTS[plantType].output:0,cost,broken:false,fault:false,online:false};
   score+=5;
   renderMap();
   autoCheck();
@@ -660,7 +739,7 @@ function startEmergency(){
   if(type==="cold"){
     coldSnap=true;
   }else{
-    const allowed=type==="linefall"?["tx","dist","service"]:type==="rain"?["dist","service"]:["tx","dist","service","transformer"];
+    const allowed=type==="linefall"?["tx","dist","service"]:type==="rain"?["dist","service"]:["plant","tx","dist","service","transformer"];
     const impacts=impactCandidates(allowed);
     if(impacts.length){
       const bestImpact=impacts[0].impact;
@@ -701,12 +780,12 @@ function showEmergencyOverlay(type){
     $("#weatherArt").textContent="🌧️⚡";
     $("#eventTitle").textContent="HEAVY RAIN!";
     $("#eventSub").textContent="A fault tripped the breaker.";
-    $("#eventExplain").innerHTML="The protective breaker opened, so the HUD now shows <strong>0 powered buildings</strong>. Repair the red fault before closing the breaker.";
+    $("#eventExplain").innerHTML="Solar output drops to about <strong>40%</strong> during heavy rain. The protective breaker opened, so repair the red fault before closing it.";
   }else{
     $("#weatherArt").textContent="🗼💥";
     $("#eventTitle").textContent="POWER LINE DOWN!";
     $("#eventSub").textContent="A live line has fallen.";
-    $("#eventExplain").innerHTML="The damaged line cut power downstream. Watch the powered-building count at the top, then find the red grid piece.";
+    $("#eventExplain").innerHTML="Generation remains available, but the damaged connection cuts power downstream. Find the red grid piece.";
   }
 
   $("#eventSupply").textContent=n.supply;
@@ -829,6 +908,7 @@ function loadLevel(i){
   rescues=0;
   coldSnap=false;
   score=0;
+  budget=1000;
   levelComplete=false;
   wasHealthy=false;
   eventHistory=[];
@@ -853,8 +933,12 @@ $("#breakerBtn").addEventListener("click",toggleBreaker);
 $("#resetBtn").addEventListener("click",resetLevel);
 $("#respondBtn").addEventListener("click",respondToEmergency);
 $("#nextBtn").addEventListener("click",()=>{if(level<4)loadLevel(level+1)});
-
-loadLevel(0);
+document.querySelectorAll("[data-difficulty]").forEach(button=>button.addEventListener("click",()=>{
+  difficulty=button.dataset.difficulty;
+  saveProgress();
+  $("#startOverlay").classList.add("hidden");
+  loadLevel(0);
+}));
 })();
 </script>
 </body>
