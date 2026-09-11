@@ -542,7 +542,7 @@ function renderDock(){
   const picker=$("#plantPicker"); picker.innerHTML="";
   Object.entries(PLANTS).forEach(([key,p])=>{
     const card=document.createElement("button"); card.className="plant-card";
-    card.innerHTML="<span class='plant-icon'>"+p.icon+"</span> <strong>"+p.name+"</strong><small>⚡ "+p.output+(difficulty==="medium"?" • 💰 $"+p.cost:"")+"</small><small>✓ "+p.strength+"</small><small>⚠ "+p.weakness+"</small>";
+    card.innerHTML="<span class='plant-icon'>"+p.icon+"</span> <strong>"+p.name+"</strong><small>⚡ "+p.output+(difficulty!=="easy"?" • 💰 $"+p.cost:"")+"</small><small>✓ "+p.strength+"</small><small>⚠ "+p.weakness+"</small>";
     card.addEventListener("click",()=>{selected="plant:"+key;picker.classList.remove("show");$("#dockStatus").innerHTML="Selected <strong>"+p.name+"</strong>. Click or drag onto a square.";renderMap();});
     picker.appendChild(card);
   });
@@ -635,7 +635,7 @@ function renderMap(){
   $("#levelHud").textContent="LEVEL "+(level+1)+" • "+cfg().name;
   $("#score").textContent=score;
   $("#budget").textContent=budget;
-  $("#budgetPill").classList.toggle("hidden",difficulty!=="medium");
+  $("#budgetPill").classList.toggle("hidden",difficulty==="easy");
   const reliability=reliabilityScore(n);
   $("#reliability").textContent=reliability+"% "+(reliability>=80?"STRONG":reliability>=50?"FAIR":"LOW");
   $("#reliabilityPill").classList.toggle("hidden",difficulty!=="hard");
@@ -658,11 +658,11 @@ function pieceCost(key){
   return COSTS[key]||0;
 }
 function canAfford(cost){
-  if(difficulty!=="medium"||budget>=cost)return true;
+  if(difficulty==="easy"||budget>=cost)return true;
   const pill=$("#budgetPill");pill.classList.add("shake");setTimeout(()=>pill.classList.remove("shake"),800);
   say("💰 <strong>Not enough money.</strong>","💰");return false;
 }
-function spend(cost){if(difficulty==="medium")budget-=cost}
+function spend(cost){if(difficulty!=="easy")budget-=cost}
 function useTool(i,key){
   if(levelComplete||pendingEvent)return;
   hintHouse=null; hintTile=null;
@@ -678,7 +678,7 @@ function useTool(i,key){
 
   if(key==="erase"){
     if(pieces[i]){
-      if(difficulty==="medium") budget+=Math.round((pieces[i].cost||0)*.5);
+      if(difficulty!=="easy") budget+=Math.round((pieces[i].cost||0)*.5);
       pieces[i]=null;
       score=Math.max(0,score-5);
       say("🚜 Grid piece removed. The <strong>road stays</strong>.","🚜");
