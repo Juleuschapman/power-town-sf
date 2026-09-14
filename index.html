@@ -318,7 +318,7 @@ const PLANTS={
   nuclear:{name:"NUCLEAR PLANT",icon:"☢️",output:220,cost:500,strength:"Very high steady output",weakness:"Expensive to build and repair"}
 };
 const COSTS={tx:25,sub:100,dist:15,transformer:60,service:10,repair:40};
-const STARTING_BUDGETS={medium:[900,1150,1450,1900,2400],hard:[1000,1300,1650,2150,2750]};
+const STARTING_BUDGETS={medium:[900,1150,1450,1900,2400],hard:[1000,1300,1650,1500,1800]};
 const EMERGENCY_RESERVES={medium:[0,150,175,225,275],hard:[0,200,250,325,400]};
 const SHUFFLED_TOOLS=["plant","tx","sub","dist","transformer","service","repair"];
 const EVENT_TYPES=["cold","wind","rain","linefall"];
@@ -480,8 +480,13 @@ function computeNetwork(){
     else servedCount=Math.max(0,Math.floor(connectedCustomers.length*(supply/demand)));
   }
   const servedCustomers=connectedCustomers.slice(0,servedCount);
-  const healthy=connectedCustomers.length===cfg().buildings.length && supply>=demand && !breakerOpen;
-  return {powered,onlinePlants,connectedCustomers,servedCustomers,supply,demand,healthy};
+  const reliability=reliabilityScore();
+  const hardReliabilityTarget=difficulty==="hard"?(level===3?85:level===4?90:level>=2?70:0):0;
+  const plantMix=new Set(operatingPlants.map(p=>p.plantType).filter(Boolean));
+  const mixReady=!(difficulty==="hard"&&level===4)||plantMix.size>=2;
+  const baseHealthy=connectedCustomers.length===cfg().buildings.length && supply>=demand && !breakerOpen;
+  const healthy=baseHealthy&&reliability>=hardReliabilityTarget&&mixReady;
+  return {powered,onlinePlants,connectedCustomers,servedCustomers,supply,demand,healthy,reliability,hardReliabilityTarget,mixReady};
 }
 
 function shuffle(arr){
@@ -763,7 +768,11 @@ function autoCheck(){
     if(budget>=reserve){reserveWaiting=false;wasHealthy=true;say("✅ <strong>Emergency reserve ready.</strong> Incoming event…","😮");startEmergency();}
   }else if(!n.healthy){
     wasHealthy=false;
-    if(n.connectedCustomers.length>0&&n.connectedCustomers.length<cfg().buildings.length){
+    if(n.connectedCustomers.length===cfg().buildings.length&&n.supply>=n.demand&&n.hardReliabilityTarget&&n.reliability<n.hardReliabilityTarget){
+      say("🔁 <strong>Grid works, but reliability is too low.</strong> Add backup power-line routes until reliability reaches <strong>"+n.hardReliabilityTarget+"%</strong>.","🔁");
+    }else if(n.connectedCustomers.length===cfg().buildings.length&&n.supply>=n.demand&&!n.mixReady){
+      say("⚡ <strong>Level 5 requires a diverse power mix.</strong> Connect at least two different plant types.","⚡");
+    }else if(n.connectedCustomers.length>0&&n.connectedCustomers.length<cfg().buildings.length){
       say("💡 Electricity has reached <strong>"+n.connectedCustomers.length+"/"+cfg().buildings.length+"</strong> buildings. Keep extending the glowing grid.");
     }else if(n.connectedCustomers.length===cfg().buildings.length&&n.supply<n.demand){
       say("⚡ Your connections work, but the city needs <strong>"+n.demand+"</strong> power and you only have <strong>"+n.supply+"</strong>. Add another power plant.","⚠️");
