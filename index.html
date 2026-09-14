@@ -227,7 +227,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
     <div id="dock" class="dock" aria-label="Build tools"></div>
   </section>
 
-  <footer class="help">
+  <footer id="helpFooter" class="help">
     <span class="legend">⚡ Power path:</span>
     🏭 Plant → 🗼 Transmission → ⚙️ Substation → 🔌 Distribution → 🛢️ Transformer → ➖ Power Line → 🏠 Building.
     <strong>Roads stay on the map.</strong> Powered grid pieces glow and buildings light up as electricity reaches them.
@@ -646,6 +646,7 @@ function renderMap(){
   $("#levelHud").textContent="LEVEL "+(level+1)+" • "+cfg().name;
   $("#score").textContent=score;
   $("#budget").textContent=budget;
+  $("#helpFooter").classList.toggle("hidden",difficulty==="hard");
   $("#budgetPill").classList.toggle("hidden",difficulty==="easy");
   const reliability=reliabilityScore(n);
   $("#reliability").textContent=reliability+"% "+(reliability>=80?"STRONG":reliability>=50?"FAIR":"LOW");
