@@ -129,9 +129,8 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
 .plant-card{flex:1 1 145px;min-height:120px;border:2px solid #ffffff3a;border-radius:12px;background:#2b4057;color:#fff;text-align:left;padding:9px;cursor:pointer;font-weight:900}
 .plant-card:hover,.plant-card.selected{background:#4d6be2;border-color:#fff}
 .plant-card .plant-icon{font-size:27px}.plant-card small{display:block;font-size:10px;line-height:1.25;margin-top:3px;color:#fff}
-.start-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-end;justify-content:center;padding:clamp(18px,5vh,55px) 18px;background:#09121e55 url("start-screen.png") center/cover no-repeat}
-.start-card{width:min(580px,96%);background:linear-gradient(180deg,#10253bdd,#081522e8);border:3px solid #ffffffb8;border-radius:28px;padding:18px 22px;text-align:center;box-shadow:0 24px 60px #0009;color:#fff;backdrop-filter:blur(3px)}
-.start-card h1{margin:0;color:#ffd83d;font-size:clamp(28px,5vw,44px);text-shadow:0 3px #172c4d}.start-card p{font-weight:850;color:#fff;margin:4px 0 12px}.difficulty-row{display:flex;gap:10px;margin-top:12px}.difficulty-btn{flex:1;min-height:58px;border:0;border-radius:14px;background:#168bd1;color:#fff;font-size:18px;font-weight:1000;cursor:pointer;box-shadow:0 5px #07518a}.difficulty-btn:nth-child(2){background:#f18a22;box-shadow:0 5px #a94e0c}.difficulty-btn:nth-child(3){background:#a43cdb;box-shadow:0 5px #64208d}.difficulty-btn:hover,.difficulty-btn.selected{filter:brightness(1.2);transform:translateY(-2px)}.play-btn{width:min(390px,100%);min-height:64px;border:0;border-radius:18px;background:linear-gradient(#8bea4f,#28ad3d);color:#fff;font-size:29px;font-weight:1000;cursor:pointer;box-shadow:0 6px #176b2a;text-shadow:0 2px #276525}.play-btn:disabled{opacity:.55;cursor:not-allowed;filter:grayscale(.5)}
+.start-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-end;justify-content:center;min-height:100vh;padding:18px;background:#09121e55 url("start-screen.png") center center/cover no-repeat;transition:opacity .35s ease}.start-overlay.fade-out{opacity:0;pointer-events:none}
+.start-card{width:min(600px,calc(100% - 24px));max-height:calc(100vh - 28px);overflow:auto;background:rgba(10,25,40,.82);backdrop-filter:blur(10px);border:2px solid #ffffffb8;border-radius:20px;padding:14px 18px;text-align:center;box-shadow:0 18px 45px #0008;color:#fff}.start-card strong{display:block;font-size:17px;letter-spacing:.08em;text-transform:uppercase}.difficulty-row{display:flex;gap:10px;margin:10px 0 13px}.difficulty-btn{flex:1;min-height:54px;border:2px solid transparent;border-radius:14px;background:#168bd1;color:#fff;font-size:18px;font-weight:1000;cursor:pointer;box-shadow:0 4px #07518a}.difficulty-btn:nth-child(2){background:#f18a22;box-shadow:0 4px #a94e0c}.difficulty-btn:nth-child(3){background:#a43cdb;box-shadow:0 4px #64208d}.difficulty-btn:hover,.difficulty-btn.selected{filter:brightness(1.15);transform:scale(1.04);border-color:#fff6a5;outline:3px solid #fff}.play-btn{width:min(390px,100%);min-height:58px;border:0;border-radius:16px;background:linear-gradient(#8bea4f,#28ad3d);color:#fff;font-size:25px;font-weight:1000;cursor:pointer;box-shadow:0 5px #176b2a;text-shadow:0 2px #276525}.play-btn:disabled{background:linear-gradient(#53675a,#34463b);color:#d6e0d8;box-shadow:0 5px #202d26;cursor:not-allowed;filter:none}.play-btn small{display:block;font-size:11px;letter-spacing:.03em;text-shadow:none}
 .repair-game{width:min(650px,96%);background:#172b42;border:5px solid #8faed0;border-radius:25px;padding:22px;color:#fff;text-align:center;box-shadow:0 24px 60px #0009;animation:pop .3s ease}.repair-game h2{margin:2px 0 5px;font-size:30px}.repair-game p{margin:4px 0 12px;font-weight:850}.cable-board{position:relative;display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:190px;margin:12px 0;padding:25px;border-radius:18px;background:linear-gradient(90deg,#263d57,#102033);border:2px solid #ffffff35}.cable-end,.socket{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:35px;cursor:pointer;user-select:none;touch-action:none}.cable-end{background:#b9333e;border:5px solid #ff8585;box-shadow:0 0 20px #ef535099}.cable-end.selected{outline:5px solid #ffe45c}.socket{background:#343f52;border:5px solid #8ca1ba}.socket.target{box-shadow:0 0 25px #ffe45c;border-color:#ffe45c}.socket.wrong{animation:shake .35s;background:#ad3f43}.socket.correct{background:#b49621;border-color:#ffe45c;box-shadow:0 0 24px #ffe45c}.cable-wire{height:12px;flex:1;background:#bd3944;border-radius:9px}.cable-wire.connected{background:#ffe45c;box-shadow:0 0 18px #ffe45c}.repair-status{min-height:30px;font-weight:1000;color:#ffe45c}.repair-restore{width:100%;min-height:52px;border:0;border-radius:14px;background:#ffe45c;color:#253244;font-size:18px;font-weight:1000;cursor:pointer}.repair-restore:disabled{opacity:.35;cursor:not-allowed}
 @keyframes alarm{from{transform:scale(1)}to{transform:scale(1.06)}}
 @keyframes powerPulse{from{filter:brightness(1)}to{filter:brightness(1.18)}}
@@ -253,15 +252,13 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
 
 <section id="startOverlay" class="start-overlay" role="dialog" aria-modal="true">
   <div class="start-card">
-    <h1>🌉 POWER TOWN SF</h1>
-    <p>Build a working San Francisco power grid, survive emergencies, and light every building.</p>
     <strong>Choose Difficulty</strong>
     <div class="difficulty-row">
       <button class="difficulty-btn" data-difficulty="easy">EASY</button>
       <button class="difficulty-btn" data-difficulty="medium">MEDIUM</button>
       <button class="difficulty-btn" data-difficulty="hard">HARD</button>
     </div>
-    <button id="playBtn" class="play-btn" disabled>▶ PLAY</button>
+    <button id="playBtn" class="play-btn" disabled>▶ PLAY<small>Choose a difficulty first</small></button>
   </div>
 </section>
 
@@ -1115,15 +1112,15 @@ $("#respondBtn").addEventListener("click",respondToEmergency);
 $("#nextBtn").addEventListener("click",()=>{if(level<4)loadLevel(level+1)});
 document.querySelectorAll("[data-difficulty]").forEach(button=>button.addEventListener("click",()=>{
   selectedDifficulty=button.dataset.difficulty;
-  document.querySelectorAll("[data-difficulty]").forEach(x=>x.classList.toggle("selected",x===button));
-  document.getElementById("playBtn").disabled=false;
+  document.querySelectorAll("[data-difficulty]").forEach(x=>{x.classList.toggle("selected",x===button);x.textContent=(x===button?"✓ ":"")+x.dataset.difficulty.toUpperCase()});
+  const play=document.getElementById("playBtn");play.disabled=false;play.innerHTML="▶ PLAY "+selectedDifficulty.toUpperCase();
 }));
 document.getElementById("playBtn").addEventListener("click",()=>{
   if(!selectedDifficulty)return;
   difficulty=selectedDifficulty;
   saveProgress();
-  document.getElementById("startOverlay").classList.add("hidden");
   loadLevel(0);
+  const start=document.getElementById("startOverlay");start.classList.add("fade-out");setTimeout(()=>start.classList.add("hidden"),350);
 });
 budgetAudit();
 })();
