@@ -120,6 +120,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
 .hidden{display:none!important}
 .budget-pill{background:#214d3a;color:#b9ffd0;border-color:#70d99a}
 .budget-pill.shake{animation:shake .35s 2;background:#a83d3d;color:#fff}
+.budget-pill.flash-buy{animation:pop .35s;background:#9b8125;color:#fff}.budget-pill.flash-refund{animation:pop .35s;background:#287b4b;color:#fff}
 .reliability-pill{background:#58491c;color:#ffe98a;border-color:#f8d45c}
 .zone-valid{outline:4px solid #64e58a;outline-offset:-4px;background:linear-gradient(145deg,#83e59a,#4aa967)!important}
 .zone-invalid{opacity:.72}
@@ -154,6 +155,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
       <div id="budgetPill" class="pill budget-pill hidden">💰 $<span id="budget">1000</span></div>
       <div id="reliabilityPill" class="pill reliability-pill hidden">🔁 RELIABILITY: <span id="reliability">100%</span></div>
       <div id="crewsPill" class="pill hidden">🧰 REPAIR CREWS: <span id="crews">2/2</span></div>
+      <div id="reservePill" class="pill hidden">💰 EMERGENCY RESERVE <span id="reserveNow">$0</span> / <span id="reserveNeed">$0</span></div>
       <div id="emergencyPill" class="pill emergency-pill hidden">🚨 EMERGENCY</div>
     </div>
     <div class="hudgroup">
@@ -316,6 +318,8 @@ const PLANTS={
   nuclear:{name:"NUCLEAR PLANT",icon:"☢️",output:220,cost:500,strength:"Very high steady output",weakness:"Expensive to build and repair"}
 };
 const COSTS={tx:25,sub:100,dist:15,transformer:60,service:10,repair:40};
+const STARTING_BUDGETS={medium:[900,1150,1450,1900,2400],hard:[1000,1300,1650,2150,2750]};
+const EMERGENCY_RESERVES={medium:[0,150,175,225,275],hard:[0,200,250,325,400]};
 const SHUFFLED_TOOLS=["plant","tx","sub","dist","transformer","service","repair"];
 const EVENT_TYPES=["cold","wind","rain","linefall"];
 
@@ -336,6 +340,7 @@ let coldSnap=false;
 let score=0;
 let levelComplete=false;
 let wasHealthy=false;
+let reserveWaiting=false;
 let eventHistory=[];
 let hintHouse=null;
 let hintTile=null;
@@ -542,7 +547,7 @@ function renderDock(){
   const picker=$("#plantPicker"); picker.innerHTML="";
   Object.entries(PLANTS).forEach(([key,p])=>{
     const card=document.createElement("button"); card.className="plant-card";
-    card.innerHTML="<span class='plant-icon'>"+p.icon+"</span> <strong>"+p.name+"</strong><small>⚡ "+p.output+(difficulty!=="easy"?" • 💰 $"+p.cost:"")+"</small><small>✓ "+p.strength+"</small><small>⚠ "+p.weakness+"</small>";
+    card.innerHTML="<span class='plant-icon'>"+p.icon+"</span> <strong>"+p.name+"</strong><small>⚡ "+p.output+" • "+(difficulty==="easy"?"FREE":"💰 $"+p.cost)+"</small><small>✓ "+p.strength+"</small><small>⚠ "+p.weakness+"</small>";
     card.addEventListener("click",()=>{selected="plant:"+key;picker.classList.remove("show");$("#dockStatus").innerHTML="Selected <strong>"+p.name+"</strong>. Click or drag onto a square.";renderMap();});
     picker.appendChild(card);
   });
@@ -551,7 +556,8 @@ function renderDock(){
     const t=TOOL_INFO[key], b=document.createElement("button");
     b.className="tool"+(key==="erase"?" bulldozer":"");
     b.setAttribute("aria-pressed",String(key===selected||key==="plant"&&String(selected).startsWith("plant:")));
-    b.innerHTML="<div class='big'>"+t.icon+"</div><div>"+t.name+"</div><div class='tiny'>"+t.tip+"</div>";
+    const price=key==="plant"?"":key==="erase"?"Refund on removal":key==="repair"?"💰 "+(difficulty==="easy"?"FREE":"$40"):(difficulty==="easy"?"FREE":"💰 $"+COSTS[key]);
+    b.innerHTML="<div class='big'>"+t.icon+"</div><div>"+t.name+"</div><div class='tiny'>"+price+"</div><div class='tiny'>"+t.tip+"</div>";
     b.addEventListener("click",()=>{
       if(dragState.active)return;
       if(key==="plant"){
@@ -641,6 +647,9 @@ function renderMap(){
   $("#reliabilityPill").classList.toggle("hidden",difficulty!=="hard");
   $("#crews").textContent=(repairCrews-busyCrews)+"/"+repairCrews;
   $("#crewsPill").classList.toggle("hidden",difficulty!=="hard");
+  const reserve=difficulty==="easy"?0:EMERGENCY_RESERVES[difficulty][level];
+  $("#reserveNow").textContent="$"+budget;$("#reserveNeed").textContent="$"+reserve;
+  $("#reservePill").classList.toggle("hidden",difficulty==="easy"||level===0);
   $("#plants").textContent=n.onlinePlants;
   $("#supply").textContent=n.supply;
   $("#demand").textContent=n.demand;
@@ -663,6 +672,7 @@ function canAfford(cost){
   say("💰 <strong>Not enough money.</strong>","💰");return false;
 }
 function spend(cost){if(difficulty!=="easy")budget-=cost}
+function flashMoney(kind){if(difficulty==="easy")return;const p=$("#budgetPill");p.classList.remove("flash-buy","flash-refund");void p.offsetWidth;p.classList.add(kind==="refund"?"flash-refund":"flash-buy");setTimeout(()=>p.classList.remove("flash-buy","flash-refund"),500)}
 function useTool(i,key){
   if(levelComplete||pendingEvent)return;
   hintHouse=null; hintTile=null;
@@ -678,10 +688,15 @@ function useTool(i,key){
 
   if(key==="erase"){
     if(pieces[i]){
-      if(difficulty!=="easy") budget+=Math.round((pieces[i].cost||0)*.5);
+      const removed=pieces[i];
+      const original=removed.purchaseCost||removed.cost||0;
+      const refund=difficulty==="medium"?Math.round(original*.75):difficulty==="hard"?Math.round(original*.60):0;
+      if(difficulty!=="easy") budget+=refund;
+      flashMoney("refund");
       pieces[i]=null;
       score=Math.max(0,score-5);
-      say("🚜 Grid piece removed. The <strong>road stays</strong>.","🚜");
+      const removedName=removed.type==="plant"?(PLANTS[removed.plantType]?.name||"POWER PLANT"):(TOOL_INFO[removed.type]?.name||"equipment");
+      say("🚜 Removed <strong>"+removedName+"</strong>. Refund: <strong>+$"+refund+"</strong>. The road stays.","🚜");
     }
     renderMap(); autoCheck(); return;
   }
@@ -699,6 +714,7 @@ function useTool(i,key){
       }
       if(!canAfford(COSTS.repair))return;
       spend(COSTS.repair);
+      flashMoney("buy");
       pieces[i].broken=false;
       pieces[i].fault=false;
       score+=75;
@@ -712,9 +728,11 @@ function useTool(i,key){
 
   const actualType=plantType?"plant":key;
   const cost=pieceCost(key);
+  if(pieces[i]){say("🚫 Bulldoze the existing equipment first, then place the new component.","🚜");return;}
   if(!canAfford(cost))return;
   spend(cost);
-  pieces[i]={type:actualType,plantType:plantType||null,output:plantType?PLANTS[plantType].output:0,cost,broken:false,fault:false,online:false};
+  flashMoney("buy");
+  pieces[i]={type:actualType,plantType:plantType||null,output:plantType?PLANTS[plantType].output:0,cost,purchaseCost:cost,broken:false,fault:false,online:false};
   score+=5;
   renderMap();
   autoCheck();
@@ -726,7 +744,13 @@ function autoCheck(){
 
   const n=computeNetwork();
   if(n.healthy&&!wasHealthy){
-    wasHealthy=true;
+    const reserve=difficulty==="easy"?0:EMERGENCY_RESERVES[difficulty][level];
+    if(reserve>0&&budget<reserve){
+      reserveWaiting=true;
+      say("⚠️ <strong>GRID ONLINE — NOT EMERGENCY READY</strong><br>Current Money: $"+budget+"<br>Emergency Reserve Needed: $"+reserve+"<br>💰 EMERGENCY RESERVE: $"+budget+" / $"+reserve,"⚠️");
+      renderMap();return;
+    }
+    reserveWaiting=false;wasHealthy=true;
     score+=200;
     if(level===0){
       finishLevel();
@@ -734,6 +758,9 @@ function autoCheck(){
       say("✅ <strong>GRID ONLINE!</strong> Emergency incoming…","😮");
       startEmergency();
     }
+  }else if(n.healthy&&reserveWaiting){
+    const reserve=difficulty==="easy"?0:EMERGENCY_RESERVES[difficulty][level];
+    if(budget>=reserve){reserveWaiting=false;wasHealthy=true;say("✅ <strong>Emergency reserve ready.</strong> Incoming event…","😮");startEmergency();}
   }else if(!n.healthy){
     wasHealthy=false;
     if(n.connectedCustomers.length>0&&n.connectedCustomers.length<cfg().buildings.length){
@@ -778,16 +805,29 @@ function impactCandidates(types){
 }
 
 function chooseEvent(){
-  let pool=EVENT_TYPES.filter(t=>!eventHistory.includes(t));
-  if(!pool.length){eventHistory=[];pool=[...EVENT_TYPES]}
+  let pool=EVENT_TYPES.filter(t=>!eventHistory.includes(t)&&canPlayerRecoverFromEmergency(t));
+  if(!pool.length){eventHistory=[];pool=EVENT_TYPES.filter(canPlayerRecoverFromEmergency)}
+  if(!pool.length)return null;
   const type=pool[Math.floor(Math.random()*pool.length)];
   eventHistory.push(type);
   return type;
 }
 
+function canPlayerRecoverFromEmergency(type){
+  const reserve=difficulty==="easy"?0:EMERGENCY_RESERVES[difficulty][level];
+  if(budget<reserve)return false;
+  if(type==="cold"){
+    const available=Object.values(PLANTS).some(p=>p.cost<=budget&&p.output+computeNetwork().supply>=cfg().coldDemand);
+    return available||computeNetwork().supply>=cfg().coldDemand;
+  }
+  if(type!=="cold"&&!pieces.some(p=>p&&!p.broken))return false;
+  return true;
+}
+
 function startEmergency(){
   if(level===0||levelComplete||pendingEvent||currentEvent)return;
   const type=chooseEvent();
+  if(!type)return;
   pendingEvent=type;
 
   if(type==="cold"){
@@ -952,6 +992,17 @@ function resetLevel(){
   loadLevel(level);
 }
 
+function budgetAudit(){
+  ["medium","hard"].forEach(mode=>LEVELS.forEach((lv,i)=>{
+    const buildings=lv.buildings.length;
+    const verifiedGridCost=PLANTS.gas.cost+COSTS.tx*3+COSTS.sub+COSTS.dist*2+COSTS.transformer+COSTS.service*buildings;
+    const reserve=EMERGENCY_RESERVES[mode][i];
+    const starting=STARTING_BUDGETS[mode][i];
+    const buffer=starting-verifiedGridCost-reserve;
+    console.log("POWER TOWN BUDGET AUDIT",mode,"Level "+(i+1),{startingBudget:starting,verifiedGridCost,emergencyReserve:reserve,remainingBuffer:buffer,status:buffer>=0?"PASS":"FAIL — LEVEL MAY BE IMPOSSIBLE"});
+  }));
+}
+
 function loadLevel(i){
   if(i>=unlocked)return;
   level=i;
@@ -963,11 +1014,12 @@ function loadLevel(i){
   rescues=0;
   coldSnap=false;
   score=0;
-  budget=1000;
+  budget=difficulty==="easy"?0:STARTING_BUDGETS[difficulty][i];
   busyCrews=0;
   levelComplete=false;
   wasHealthy=false;
   eventHistory=[];
+  reserveWaiting=false;
   hintHouse=null;
   hintTile=null;
   $("#eventOverlay").classList.add("hidden");
@@ -995,6 +1047,7 @@ document.querySelectorAll("[data-difficulty]").forEach(button=>button.addEventLi
   document.getElementById("startOverlay").classList.add("hidden");
   loadLevel(0);
 }));
+budgetAudit();
 })();
 </script>
 </body>
