@@ -141,6 +141,8 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
 @keyframes wireIn{from{transform:scaleX(.1);opacity:.3}to{transform:scaleX(1);opacity:1}}
 .utility-scene{display:block;aspect-ratio:1000/560;min-height:0;padding:0;background:#1b2b3c;border:3px solid #a8c6dd;border-radius:20px;overflow:hidden}.utility-scene svg{display:block;width:100%;height:100%}.utility-scene .broken-wire.removed{opacity:0;pointer-events:none}.utility-scene #looseWireLeft,.utility-scene #looseWireRight{transition:opacity .35s}.utility-scene #installedWire.visible{opacity:1!important;animation:wireIn .45s ease-out}.utility-scene #repairElectricity.flowing{opacity:1;stroke-dashoffset:0;animation:svgPowerFlow .6s linear infinite}.utility-scene #connectionLeft.target,.utility-scene #connectionRight.target{fill:#ffe45c;stroke:#fff;filter:url(#softGlow)}.utility-scene #connectionLeft.connected,.utility-scene #connectionRight.connected{fill:#4fc77d;stroke:#d9ffb6}.utility-scene #disconnectBox.selected{filter:url(#softGlow)}.utility-scene #cutFlash.show{opacity:1;animation:cutPop .45s ease-out}.utility-scene.off #repairElectricity{opacity:0!important}.utility-scene.off #damagedWire{filter:none;stroke:#68727c}.repair-tools{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.repair-game{width:min(820px,96vw)}
 @keyframes svgPowerFlow{to{stroke-dashoffset:-38}}@keyframes cutPop{0%{opacity:0;transform:scale(.5)}45%{opacity:1;transform:scale(1.15)}100%{opacity:0;transform:scale(1)}}
+.tower-scene{aspect-ratio:1000/520;min-height:300px;border:3px solid #a8c6dd;border-radius:18px;overflow:hidden;background:#8aa0b4;box-shadow:inset 0 -50px 70px #18263755}.tower-scene svg{width:100%;height:100%;display:block}.tower-tools{grid-template-columns:repeat(3,1fr)}.tower-tools button{min-height:58px}.tower-tools button.selected{border-color:#ffe45c;box-shadow:0 0 20px #ffe45c99,0 5px 0 #071522}.tower-point.target{filter:url(#towerGlow);fill:#ffe45c}.tower-point.connected circle{fill:#55c77b;stroke:#efffb4}.tower-scene.powered #towerElectricity{opacity:1;animation:svgPowerFlow .6s linear infinite}.tower-part.installed{opacity:1!important;animation:partDrop .35s ease-out}.tower-scene.wrong{animation:shake .35s;border-color:#ef5350}@keyframes partDrop{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:620px){.tower-tools{grid-template-columns:repeat(2,1fr)}.tower-scene{min-height:235px}}
 .utility-scene svg #damagedWire,.utility-scene svg #installedWire{position:static;left:auto;top:auto;width:auto;height:auto}.utility-scene svg #connectionLeft,.utility-scene svg #connectionRight{position:static;left:auto;top:auto;width:auto;height:auto;border-radius:0;background:none}
 .utility-scene svg #disconnectBox{position:static;right:auto;bottom:auto;padding:0;background:none;box-shadow:none}
 @media(max-width:620px){.repair-game{padding:14px}.utility-scene{min-height:230px}.repair-tools{grid-template-columns:repeat(2,1fr)}.repair-tools button{min-height:58px;font-size:14px}.repair-truck{font-size:56px}.repair-status{font-size:12px}}
@@ -255,6 +257,32 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
           <button id="replacementSpool" class="replacement-spool" aria-label="Install replacement wire"><strong>🧵 NEW CABLE</strong><small>INSTALL REPLACEMENT WIRE</small></button>
           <button id="restorePowerBtn" class="repair-restore" aria-label="Test repaired line"><strong>🔎 TEST</strong><small>WATCH ELECTRICITY FLOW</small></button>
         </div>
+      </div>
+    </section>
+
+    <section id="towerRepairOverlay" class="event-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="towerRepairTitle">
+      <div class="tower-repair-game repair-game">
+        <h2 id="towerRepairTitle">🗼 TRANSMISSION TOWER DOWN</h2>
+        <p>Rebuild the tower, reconnect the route, and test the transmission path.</p>
+        <div id="towerRepairSteps" class="repair-steps"><div class="repair-step active">□ MAKE SAFE</div><div class="repair-step">□ REBUILD TOWER</div><div class="repair-step">□ RESTORE TRANSMISSION</div></div>
+        <div id="towerBoard" class="tower-scene">
+          <svg viewBox="0 0 1000 520" role="img" aria-label="Transmission tower rebuild site">
+            <defs><linearGradient id="towerSky" x2="0" y2="1"><stop stop-color="#7f9bb7"/><stop offset="1" stop-color="#d3b987"/></linearGradient><filter id="towerGlow"><feGaussianBlur stdDeviation="6"/></filter></defs>
+            <rect width="1000" height="520" fill="url(#towerSky)"/><path d="M0 285h1000v235H0z" fill="#7b725f"/><path d="M0 395q250-40 500 0t500 0" fill="none" stroke="#b5a988" stroke-width="28" opacity=".45"/>
+            <g class="tower-standing" stroke="#293a46" stroke-width="10" fill="none"><path d="M130 410L190 100l60 310M155 280h90M170 200h60M182 135h18"/><path d="M750 410L810 100l60 310M775 280h90M790 200h60M802 135h18"/></g>
+            <g id="towerRoute" fill="none" stroke="#263540" stroke-width="9"><path d="M190 110Q500 180 810 110"/><path d="M250 155Q500 215 750 155"/></g>
+            <g id="collapsedTower" stroke="#a7463b" stroke-width="12" fill="none"><path d="M390 410L560 350L430 285L605 235"/><path d="M415 350l120-80M470 385l110-105"/></g>
+            <g id="towerBase" class="tower-part" opacity="0"><path d="M430 410L480 300L530 410Z" fill="#6f8190" stroke="#24333d" stroke-width="8"/></g>
+            <g id="towerMiddle" class="tower-part" opacity="0"><path d="M455 315L500 180L545 315M470 265h60M480 225h40" fill="none" stroke="#536a79" stroke-width="10"/></g>
+            <g id="towerTop" class="tower-part" opacity="0"><path d="M480 195L500 90L520 195" fill="none" stroke="#536a79" stroke-width="10"/></g>
+            <g id="towerCrossarm" class="tower-part" opacity="0"><path d="M430 110h140M455 110l45-28 45 28" fill="none" stroke="#344957" stroke-width="12"/></g>
+            <g id="towerLeftPoint" class="tower-point" transform="translate(430 110)"><circle r="18" fill="#314b59" stroke="#e5d16b" stroke-width="5"/></g><g id="towerRightPoint" class="tower-point" transform="translate(570 110)"><circle r="18" fill="#314b59" stroke="#e5d16b" stroke-width="5"/></g>
+            <g id="towerCraneTruck" transform="translate(80 365)"><rect width="210" height="65" rx="10" fill="#e6ae35" stroke="#593b26" stroke-width="6"/><path d="M55 365V300h70v65M125 320l90-100" fill="none" stroke="#dbe5e8" stroke-width="13"/><circle cx="45" cy="70" r="18" fill="#17232e"/><circle cx="170" cy="70" r="18" fill="#17232e"/><text x="20" y="42" font-size="14" font-weight="900" fill="#51351e">GRID CREW</text></g>
+            <g id="towerElectricity" opacity="0" stroke="#ffe45c" stroke-width="7" stroke-dasharray="14 25" fill="none"><path d="M190 110Q500 180 810 110"/></g>
+          </svg>
+        </div>
+        <div id="towerRepairStatus" class="repair-status">Use POWER to isolate the transmission route.</div>
+        <div class="tower-tools repair-tools"><button id="towerPowerBtn"><strong>⚡ TURN POWER OFF</strong><small>POWER CONTROL</small></button><button id="towerCraneBtn"><strong>🏗️ CRANE</strong><small>CLEAR COLLAPSED TOWER</small></button><button id="towerPartBtn"><strong>🧱 TOWER PART</strong><small>REBUILD STRUCTURE</small></button><button id="towerArmBtn"><strong>🔩 CROSSARM</strong><small>FINISH THE TOP</small></button><button id="towerConnectBtn"><strong>🔗 CONNECT</strong><small>REJOIN TRANSMISSION</small></button><button id="towerTestBtn"><strong>🔍 TEST</strong><small>WATCH POWER FLOW</small></button></div>
       </div>
     </section>
 
@@ -381,7 +409,7 @@ const COSTS={tx:25,sub:100,dist:15,transformer:60,service:10,repair:40};
 const STARTING_BUDGETS={medium:[900,1150,1450,1900,2400],hard:[1000,1300,1650,1500,1800]};
 const EMERGENCY_RESERVES={medium:[0,150,175,225,275],hard:[0,200,250,325,400]};
 const SHUFFLED_TOOLS=["plant","tx","sub","dist","transformer","service","repair"];
-const EVENT_TYPES=["cold","wind","rain","linefall"];
+const EVENT_TYPES=["cold","wind","rain","linefall","towerfall"];
 
 let level=0;
 const savedProgress=loadProgress();
@@ -772,6 +800,21 @@ $("#replacementSpool").addEventListener("click",()=>{if(!repairGame)return;if(!r
 function connectRepairPoint(side){if(!repairGame)return;if(!repairGame.wireRemoved){repairMistake("Something is still in the way.");return}if(!repairGame.spoolSelected){repairMistake("Select NEW CABLE first.");return}if(side==="right"&&!repairGame.left){repairMistake("Attach the new cable to the LEFT connection first.");$("#connectionLeft").classList.add("target");return}repairGame[side]=true;$("#connection"+(side==="left"?"Left":"Right")).classList.add("connected");$("#connection"+(side==="left"?"Left":"Right")).classList.remove("target");if(side==="left")$("#connectionRight").classList.add("target");if(repairGame.left&&repairGame.right){repairGame.connected=true;$("#installedWire").classList.add("visible");$("#repairStatus").textContent="✅ New wire attached. Turn power on, then test.";$("#breakerControl").innerHTML="<strong>⚡ TURN POWER ON</strong><small>POWER CONTROL</small>";updateRepairSteps();}}
 $("#connectionLeft").addEventListener("click",()=>connectRepairPoint("left"));$("#connectionRight").addEventListener("click",()=>connectRepairPoint("right"));
 $("#restorePowerBtn").addEventListener("click",()=>{if(!repairGame)return;if(!repairGame.powerOn){repairMistake("Turn power back on before testing.");return}repairGame.testSelected=true;$("#restorePowerBtn").classList.add("selected");$("#repairStatus").textContent="🔎 TESTING — electricity is flowing through the repaired line!";$("#repairElectricity").classList.add("flowing");setTimeout(completeRepairMinigame,900);});
+let towerGame=null;
+function towerStatus(message){$("#towerRepairStatus").textContent=message;$("#towerBoard").classList.add("wrong");setTimeout(()=>$("#towerBoard").classList.remove("wrong"),300)}
+function openTowerRepairMinigame(component){towerGame={component,powerOff:false,powerOn:true,cleared:false,base:false,middle:false,top:false,arm:false,left:false,right:false,connected:false,tool:null,attempts:0};$("#towerRepairOverlay").classList.remove("hidden");["towerBase","towerMiddle","towerTop","towerCrossarm"].forEach(id=>$("#"+id).classList.remove("installed"));$("#collapsedTower").style.opacity="1";$("#towerElectricity").style.opacity="1";$("#towerBoard").classList.add("powered");$("#towerPowerBtn").innerHTML="<strong>⚡ TURN POWER OFF</strong><small>POWER CONTROL</small>";$("#towerRepairStatus").textContent="Use POWER to isolate the transmission route.";updateTowerSteps();}
+function updateTowerSteps(){if(!towerGame)return;const p=towerGame.powerOn&&towerGame.connected?3:towerGame.connected?2:towerGame.powerOff?1:0;[...$("#towerRepairSteps").children].forEach((s,i)=>{s.classList.toggle("done",i<p);s.classList.toggle("active",i===p&&p<3)});}
+function completeTowerRepair(){if(!towerGame?.connected||!towerGame.powerOn){towerStatus("Finish the transmission route before testing.");return}const rating=towerGame.attempts===0?3:towerGame.attempts<=2?2:1;const bonus=rating===3?150:rating===2?100:50;const i=towerGame.component;if(pieces[i]){pieces[i].broken=false;pieces[i].fault=false;busyCrews=Math.max(0,busyCrews-1);score+=bonus}$("#towerRepairStatus").textContent="⚡ TRANSMISSION RESTORED";say((rating===3?"⭐⭐⭐ PERFECT REPAIR":rating===2?"⭐⭐ GOOD REPAIR":"⭐ REPAIR COMPLETE")+" <strong>Transmission is flowing again.</strong>","🧰");$("#towerRepairOverlay").classList.add("hidden");towerGame=null;renderMap();autoCheck();}
+$("#towerPowerBtn").addEventListener("click",()=>{if(!towerGame)return;if(towerGame.powerOn){towerGame.powerOn=false;towerGame.powerOff=true;$("#towerBoard").classList.remove("powered");$("#towerElectricity").style.opacity="0";$("#towerPowerBtn").innerHTML="<strong>⚡ TURN POWER ON</strong><small>POWER CONTROL</small>";towerStatus("Power is isolated. Clear the collapsed tower.");updateTowerSteps();return}if(!towerGame.connected){towerStatus("The transmission route is not complete yet.");return}towerGame.powerOn=true;$("#towerBoard").classList.add("powered");$("#towerElectricity").style.opacity="1";$("#towerPowerBtn").innerHTML="<strong>⚡ POWER ON</strong><small>POWER CONTROL</small>";towerStatus("Power restored. Select TEST.");updateTowerSteps();});
+$("#towerCraneBtn").addEventListener("click",()=>{if(!towerGame)return;towerGame.tool="crane";$("#towerCraneBtn").classList.add("selected");towerStatus(towerGame.powerOff?"Crane selected. Click the collapsed tower.":"Isolate the transmission path first.");});
+$("#collapsedTower").addEventListener("click",()=>{if(!towerGame)return;if(!towerGame.powerOff){towerStatus("Isolate the transmission path first.");return}if(towerGame.tool!=="crane"){towerStatus("Select CRANE to clear the damaged tower.");return}towerGame.cleared=true;$("#collapsedTower").style.opacity="0";$("#towerCraneBtn").classList.remove("selected");towerStatus("Site cleared. Select TOWER PART to rebuild the structure.");});
+$("#towerPartBtn").addEventListener("click",()=>{if(!towerGame)return;towerGame.tool="part";$("#towerPartBtn").classList.add("selected");towerStatus("Tower part selected. Build from the base up.");});
+function installTowerPart(kind){if(!towerGame)return;if(!towerGame.cleared){towerStatus("The damaged tower must be cleared first.");return}if(towerGame.tool!=="part"){towerStatus("Select TOWER PART first.");return}if(kind==="base"&&!towerGame.base){towerGame.base=true;$("#towerBase").classList.add("installed");towerStatus("Base secured. Place the middle section.")}else if(kind==="middle"&&!towerGame.base){towerStatus("The tower needs a stable base first.")}else if(kind==="middle"&&!towerGame.middle){towerGame.middle=true;$("#towerMiddle").classList.add("installed");towerStatus("Main structure rising. Place the top section.")}else if(kind==="top"&&!towerGame.middle){towerStatus("The tower structure is incomplete.")}else if(kind==="top"&&!towerGame.top){towerGame.top=true;$("#towerTop").classList.add("installed");towerStatus("Tower body complete. Add the crossarm.")}updateTowerSteps();}
+$("#towerBase").addEventListener("click",()=>installTowerPart("base"));$("#towerMiddle").addEventListener("click",()=>installTowerPart("middle"));$("#towerTop").addEventListener("click",()=>installTowerPart("top"));
+$("#towerArmBtn").addEventListener("click",()=>{if(!towerGame)return;towerGame.tool="arm";$("#towerArmBtn").classList.add("selected");towerStatus("Crossarm selected. Click the top of the rebuilt tower.");});$("#towerCrossarm").addEventListener("click",()=>{if(!towerGame)return;if(!towerGame.top){towerStatus("The main tower structure is not complete yet.");return}if(towerGame.tool!=="arm"){towerStatus("Select CROSSARM first.");return}towerGame.arm=true;$("#towerCrossarm").classList.add("installed");towerStatus("Tower rebuilt. Select CONNECT to restore the route.");});
+$("#towerConnectBtn").addEventListener("click",()=>{if(!towerGame)return;towerGame.tool="connect";$("#towerConnectBtn").classList.add("selected");towerStatus("Connect selected. Click the left attachment point.");});
+function towerConnect(side){if(!towerGame)return;if(!towerGame.arm){towerStatus("Finish rebuilding the tower first.");return}if(towerGame.tool!=="connect"){towerStatus("Select CONNECT first.");return}if(side==="right"&&!towerGame.left){towerStatus("Connect the left side first.");return}towerGame[side]=true;$("#tower"+(side==="left"?"Left":"Right")+"Point").classList.add("connected");if(side==="left")$("#towerRightPoint").classList.add("target");if(towerGame.left&&towerGame.right){towerGame.connected=true;towerStatus("Transmission route connected. Turn power on, then test.");updateTowerSteps();}}$("#towerLeftPoint").addEventListener("click",()=>towerConnect("left"));$("#towerRightPoint").addEventListener("click",()=>towerConnect("right"));
+$("#towerTestBtn").addEventListener("click",()=>{if(!towerGame)return;if(!towerGame.powerOn){towerStatus("Turn power on before testing.");return}if(!towerGame.connected){towerStatus("The transmission lines are not connected yet.");return}$("#towerTestBtn").classList.add("selected");$("#towerElectricity").style.opacity="1";towerStatus("⚡ TESTING — power is moving through the rebuilt tower!");setTimeout(completeTowerRepair,900);});
 function useTool(i,key){
   if(levelComplete||pendingEvent)return;
   hintHouse=null; hintTile=null;
@@ -811,6 +854,17 @@ function useTool(i,key){
         spend(COSTS.repair);flashMoney("buy");
         if(difficulty==="hard")busyCrews++;
         openRepairMinigame("fallen_line",i);
+        return;
+      }
+      if(pieces[i].repairKind==="tower"){
+        if(difficulty==="easy"){
+          pieces[i].broken=false;pieces[i].fault=false;score+=75;say("🧰 <strong>Tower repaired.</strong> Transmission can flow again.","🧰");renderMap();autoCheck();return;
+        }
+        if(difficulty==="hard"&&busyCrews>=repairCrews){say("🧰 <strong>All repair crews are busy.</strong>","🧰");return;}
+        if(!canAfford(COSTS.repair))return;
+        spend(COSTS.repair);flashMoney("buy");
+        if(difficulty==="hard")busyCrews++;
+        openTowerRepairMinigame(i);
         return;
       }
       if(difficulty==="hard"){
@@ -947,14 +1001,14 @@ function startEmergency(){
   if(type==="cold"){
     coldSnap=true;
   }else{
-    const allowed=type==="linefall"?["tx","dist","service"]:type==="rain"?["dist","service"]:["plant","tx","dist","service","transformer"];
+    const allowed=(type==="linefall"||type==="towerfall")?["tx","dist","service"]:type==="rain"?["dist","service"]:["plant","tx","dist","service","transformer"];
     const impacts=impactCandidates(allowed);
     if(impacts.length){
       const bestImpact=impacts[0].impact;
       const best=impacts.filter(x=>x.impact===bestImpact);
       const chosen=best[Math.floor(Math.random()*best.length)].i;
       pieces[chosen].broken=true;
-      pieces[chosen].repairKind=type==="wind"?"line":type==="rain"?"short":"line";
+      pieces[chosen].repairKind=type==="towerfall"?"tower":type==="wind"?"line":type==="rain"?"short":"line";
       if(type==="rain"){
         pieces[chosen].fault=true;
         breakerOpen=true;
@@ -990,6 +1044,11 @@ function showEmergencyOverlay(type){
     $("#eventTitle").textContent="HEAVY RAIN!";
     $("#eventSub").textContent="A fault tripped the breaker.";
     $("#eventExplain").innerHTML="Solar output drops to about <strong>40%</strong> during heavy rain. The protective breaker opened, so repair the red fault before closing it.";
+  }else if(type==="towerfall"){
+    $("#weatherArt").textContent="🗼💥";
+    $("#eventTitle").textContent="TRANSMISSION TOWER DOWN!";
+    $("#eventSub").textContent="A long-distance transmission route has failed.";
+    $("#eventExplain").innerHTML="Rebuild the tower and reconnect the transmission path to restore the route.";
   }else{
     $("#weatherArt").textContent="🗼💥";
     $("#eventTitle").textContent="POWER LINE DOWN!";
@@ -1017,6 +1076,8 @@ function respondToEmergency(){
     $("#repairBanner").innerHTML="🌧️⚡ <strong>RAIN FAULT:</strong> Repair the red fault first, then close the breaker.";
   }else if(type==="wind"){
     $("#repairBanner").innerHTML="💨 <strong>WIND DAMAGE:</strong> Send the 🧰 Repair Crew to the red damaged grid piece.";
+  }else if(type==="towerfall"){
+    $("#repairBanner").innerHTML="🗼 <strong>TOWER DOWN:</strong> Rebuild and reconnect the transmission route.";
   }else{
     $("#repairBanner").innerHTML="🗼 <strong>POWER LINE DOWN:</strong> Repair the red line and restore customers downstream.";
   }
