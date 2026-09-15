@@ -132,7 +132,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
 .start-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-end;justify-content:center;min-height:100vh;padding:18px;background:#09121e55 url("start-screen.png") center center/cover no-repeat;transition:opacity .35s ease}.start-overlay.fade-out{opacity:0;pointer-events:none}
 .start-card{width:min(600px,calc(100% - 24px));max-height:calc(100vh - 28px);overflow:auto;background:rgba(8,20,35,.55);backdrop-filter:blur(6px);border:2px solid #ffffff9c;border-radius:20px;padding:14px 18px;text-align:center;box-shadow:0 18px 45px #0007;color:#fff}.start-card strong{display:block;font-size:17px;letter-spacing:.08em;text-transform:uppercase}.difficulty-row{display:flex;gap:10px;margin:10px 0 13px}.difficulty-btn{flex:1;min-height:54px;border:2px solid transparent;border-radius:14px;background:#168bd1;color:#fff;font-size:18px;font-weight:1000;cursor:pointer;box-shadow:0 4px #07518a}.difficulty-btn:nth-child(2){background:#f18a22;box-shadow:0 4px #a94e0c}.difficulty-btn:nth-child(3){background:#a43cdb;box-shadow:0 4px #64208d}.difficulty-btn:hover,.difficulty-btn.selected{filter:brightness(1.15);transform:scale(1.04);border-color:#fff6a5;outline:3px solid #fff}.play-btn{width:min(390px,100%);min-height:58px;border:0;border-radius:16px;background:linear-gradient(#8bea4f,#28ad3d);color:#fff;font-size:25px;font-weight:1000;cursor:pointer;box-shadow:0 5px #176b2a;text-shadow:0 2px #276525}.play-btn:disabled{background:linear-gradient(#53675a,#34463b);color:#d6e0d8;box-shadow:0 5px #202d26;cursor:not-allowed;filter:none}.play-btn small{display:block;font-size:11px;letter-spacing:.03em;text-shadow:none}
 .repair-game{width:min(650px,96%);background:#172b42;border:5px solid #8faed0;border-radius:25px;padding:22px;color:#fff;text-align:center;box-shadow:0 24px 60px #0009;animation:pop .3s ease}.repair-game h2{margin:2px 0 5px;font-size:30px}.repair-game p{margin:4px 0 12px;font-weight:850}.cable-board{position:relative;display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:190px;margin:12px 0;padding:25px;border-radius:18px;background:linear-gradient(90deg,#263d57,#102033);border:2px solid #ffffff35}.cable-end,.socket{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:35px;cursor:pointer;user-select:none;touch-action:none}.cable-end{background:#b9333e;border:5px solid #ff8585;box-shadow:0 0 20px #ef535099}.cable-end.selected{outline:5px solid #ffe45c}.socket{background:#343f52;border:5px solid #8ca1ba}.socket.target{box-shadow:0 0 25px #ffe45c;border-color:#ffe45c}.socket.wrong{animation:shake .35s;background:#ad3f43}.socket.correct{background:#b49621;border-color:#ffe45c;box-shadow:0 0 24px #ffe45c}.cable-wire{height:12px;flex:1;background:#bd3944;border-radius:9px}.cable-wire.connected{background:#ffe45c;box-shadow:0 0 18px #ffe45c}.repair-status{min-height:30px;font-weight:1000;color:#ffe45c}.repair-restore{width:100%;min-height:52px;border:0;border-radius:14px;background:#ffe45c;color:#253244;font-size:18px;font-weight:1000;cursor:pointer}.repair-restore:disabled{opacity:.35;cursor:not-allowed}
-.repair-steps{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0}.repair-step{flex:1 1 90px;padding:7px 4px;border-radius:9px;background:#ffffff18;font-size:10px;font-weight:1000}.repair-step.active{background:#f39a35;color:#172b42}.repair-step.done{background:#36a66b}.utility-scene{position:relative;display:flex;align-items:center;justify-content:space-between;gap:9px;min-height:205px;margin:10px 0;padding:16px;border-radius:16px;background:linear-gradient(#7196ac,#294760 55%,#172b42 56%);border:2px solid #ffffff40;overflow:hidden}.utility-pole{height:145px;width:28px;background:#5f4638;border-radius:5px;position:relative;box-shadow:0 0 0 4px #372a26}.utility-pole::before,.utility-pole::after{content:"";position:absolute;left:-28px;width:84px;border-top:8px solid #5f4638}.utility-pole::before{top:22px}.utility-pole::after{top:62px}.utility-pole span{position:absolute;left:-11px;font-size:18px}.utility-pole span:first-child{top:5px}.utility-pole span:last-child{top:45px}.broken-wire{flex:1;height:25px;border-top:12px solid #252d35;position:relative;cursor:pointer;filter:drop-shadow(0 0 8px #ef5350);background:repeating-linear-gradient(100deg,transparent 0 14px,#56616b 15px 18px,transparent 19px 28px)}.broken-wire::after{content:"✂";position:absolute;left:50%;top:-34px;transform:translateX(-50%);font-size:28px;color:#ff6d5f}.broken-wire.removed{border-color:#8795a2;opacity:.3;filter:none;background:none}.replacement-spool{min-width:82px;min-height:64px;border-radius:12px;background:repeating-linear-gradient(0deg,#a96b2b 0 4px,#d59a46 5px 8px);border:4px solid #ffe08a;font-size:28px;cursor:pointer;user-select:none}.replacement-spool.selected{outline:4px solid #ffe45c;transform:scale(1.06)}.cutter-tool{min-width:76px;min-height:64px;border-radius:12px;background:#475563;border:4px solid #d7e4ef;color:#fff;font-size:29px;cursor:pointer}.cutter-tool.selected{outline:4px solid #ffb23e;background:#9b5b2c}.repair-connection{width:58px;height:58px;border-radius:50%;background:#273745;border:5px solid #ffcf47;color:#ffeb9a;font-size:23px;cursor:pointer}.repair-connection.connected{background:#37a86d;border-color:#b5ffbc;box-shadow:0 0 18px #ffe45c}.repair-switch{position:absolute;left:50%;top:12px;transform:translateX(-50%);min-width:150px;min-height:45px;border:0;border-radius:12px;background:#a8333d;color:#fff;font-weight:1000;cursor:pointer}.repair-switch.off{background:#3a9c65}.repair-electricity{position:absolute;left:27%;right:27%;top:92px;border-top:6px solid #ffe45c;opacity:0;animation:powerPulse .45s infinite alternate}.repair-electricity.flowing{opacity:1}
+.repair-steps{display:flex;gap:8px;margin:10px 0}.repair-step{flex:1;padding:8px 5px;border-radius:9px;background:#ffffff18;font-size:11px;font-weight:1000}.repair-step.active{background:#f39a35;color:#172b42}.repair-step.done{background:#36a66b}.utility-scene{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:205px;margin:10px 0;padding:20px;border-radius:16px;background:linear-gradient(#7196ac,#294760 55%,#172b42 56%);border:2px solid #ffffff40;overflow:hidden}.utility-pole{height:145px;width:28px;background:#5f4638;border-radius:5px;position:relative;box-shadow:0 0 0 4px #372a26}.utility-pole::before,.utility-pole::after{content:"";position:absolute;left:-28px;width:84px;border-top:8px solid #5f4638}.utility-pole::before{top:22px}.utility-pole::after{top:62px}.utility-pole span{position:absolute;left:-11px;font-size:18px}.utility-pole span:first-child{top:5px}.utility-pole span:last-child{top:45px}.broken-wire{flex:1;height:25px;border-top:12px solid #7b2935;position:relative;cursor:pointer;filter:drop-shadow(0 0 8px #ef5350);background:repeating-linear-gradient(100deg,transparent 0 14px,#d05b5f 15px 18px,transparent 19px 28px)}.broken-wire::after{content:"✂";position:absolute;left:50%;top:-34px;transform:translateX(-50%);font-size:28px;color:#ff6d5f}.broken-wire.removed{display:none}.repair-gap{display:none;flex:1;height:72px;border:3px dashed #ffe45c;border-radius:14px;background:#172b42aa;color:#ffe45c;font-weight:1000;cursor:pointer}.repair-gap.ready{display:block;animation:powerPulse .8s infinite alternate}.repair-gap.installed{display:block;border-style:solid;border-color:#8dff9d;background:#38a86d;color:#fff;box-shadow:0 0 20px #8dff9d}.repair-tools{display:flex;gap:12px;margin-top:10px}.repair-tools button{flex:1;min-height:70px;border-radius:14px;color:#fff;cursor:pointer;padding:8px;border:3px solid #9db1c4;background:#30475d;font-size:17px;box-shadow:0 5px 0 #142536}.repair-tools button small{display:block;font-size:11px;font-weight:1000;margin-top:3px}.repair-tools button.selected{border-color:#ffe45c;box-shadow:0 0 18px #ffe45c,0 5px 0 #142536;transform:scale(1.03)}.repair-tools .replacement-spool{background:#3d315f}.repair-electricity{position:absolute;left:27%;right:27%;top:92px;border-top:6px solid #ffe45c;opacity:0;animation:powerPulse .45s infinite alternate}.repair-electricity.flowing{opacity:1}
 .utility-scene.wrong{animation:shake .35s;border-color:#ef5350}
 .broken-wire.installed{border-color:#ffe45c!important;background:repeating-linear-gradient(100deg,#ffe45c 0 10px,#9b7b22 11px 15px)!important;filter:drop-shadow(0 0 9px #ffe45c)!important}
 .utility-scene.off .utility-pole span{opacity:.15}
@@ -204,24 +204,23 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
     <section id="repairOverlay" class="event-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="repairTitle">
       <div class="repair-game">
         <h2 id="repairTitle">🗼 POWER LINE DOWN</h2>
-        <p id="repairInstruction">Make the line safe, replace the damaged section, then test the flow.</p>
+        <p id="repairInstruction">The line is isolated automatically. Remove the broken wire, then install a new cable.</p>
         <div id="repairSteps" class="repair-steps">
-          <div class="repair-step active">□ MAKE EQUIPMENT SAFE</div><div class="repair-step">□ FIX DAMAGED EQUIPMENT</div><div class="repair-step">□ RESTORE SERVICE</div>
+          <div class="repair-step active">□ REMOVE DAMAGE</div><div class="repair-step">□ INSTALL NEW CABLE</div>
         </div>
         <div id="cableBoard" class="utility-scene">
-          <button id="breakerControl" class="repair-switch">🔒 POWER ON</button>
           <div class="utility-pole"><span>⚡</span><span>⚡</span></div>
           <div id="damagedWire" class="broken-wire" aria-label="Damaged hanging wire"></div>
+          <button id="repairGap" class="repair-gap" aria-label="Open cable gap">OPEN GAP</button>
           <div class="utility-pole"><span>⚡</span><span>⚡</span></div>
-          <button id="cutterTool" class="cutter-tool" aria-label="Wire cutters">✂️</button>
-          <button id="connectionLeft" class="repair-connection" aria-label="Left pole connection">⛓</button>
-          <button id="connectionRight" class="repair-connection" aria-label="Right pole connection">⛓</button>
-          <button id="replacementSpool" class="replacement-spool" draggable="true" aria-label="Replacement wire spool">🧵</button>
           <div id="repairElectricity" class="repair-electricity">⚡ ⚡ ⚡</div>
         </div>
         <div id="repairAttempts" class="repair-status">Attempts: 0</div>
-        <div id="repairStatus" class="repair-status">Step 1: Turn power off before touching the wire.</div>
-        <button id="restorePowerBtn" class="repair-restore" disabled>TEST POWER</button>
+        <div id="repairStatus" class="repair-status">⚡ POWER OFF — SAFE TO REPAIR</div>
+        <div class="repair-tools">
+          <button id="cutterTool" class="cutter-tool" aria-label="Remove broken wire"><strong>✂️ SCISSORS</strong><small>REMOVE BROKEN WIRE</small></button>
+          <button id="replacementSpool" class="replacement-spool" aria-label="Install replacement wire"><strong>🧵 NEW CABLE</strong><small>INSTALL REPLACEMENT WIRE</small></button>
+        </div>
       </div>
     </section>
 
@@ -710,31 +709,20 @@ function flashMoney(kind){if(difficulty==="easy")return;const p=$("#budgetPill")
 let repairGame=null;
 function openRepairMinigame(type,damagedComponent){
   if(type!=="fallen_line")return false;
-  repairGame={type,component:damagedComponent,step:1,attempts:0,powerOff:false,cutterSelected:false,wireRemoved:false,spoolSelected:false,left:false,right:false,connected:false};
-  $("#breakerControl").textContent="🔒 POWER ON";$("#breakerControl").classList.remove("off");
-  $("#cableBoard").classList.remove("off");
+  repairGame={type,component:damagedComponent,step:1,attempts:0,powerOff:true,powerOn:false,cutterSelected:false,wireRemoved:false,spoolSelected:false,connected:false};
+  $("#cableBoard").classList.add("off");
   $("#damagedWire").classList.remove("removed","installed");$("#replacementSpool").classList.remove("selected");
-  $("#cutterTool").classList.remove("selected");
-  $("#connectionLeft").classList.remove("connected");$("#connectionRight").classList.remove("connected");$("#repairElectricity").classList.remove("flowing");
-  $("#repairAttempts").textContent="Attempts: 0";$("#repairStatus").textContent="Step 1: Turn power off before touching the wire.";$("#restorePowerBtn").disabled=true;$("#restorePowerBtn").textContent="TEST POWER";updateRepairSteps();
+  $("#cutterTool").classList.remove("selected");$("#repairGap").classList.remove("ready","installed");$("#repairElectricity").classList.remove("flowing");
+  $("#repairAttempts").textContent="Attempts: 0";$("#repairStatus").textContent="⚡ POWER OFF — SAFE TO REPAIR";updateRepairSteps();
   $("#repairOverlay").classList.remove("hidden");return true;
 }
 function updateRepairSteps(){
-  if(!repairGame)return;const steps=$("#repairSteps").children;const progress=repairGame.powerOn?3:repairGame.connected?2:repairGame.powerOff?1:0;
+  if(!repairGame)return;const steps=$("#repairSteps").children;const progress=repairGame.connected?2:repairGame.wireRemoved?1:0;
   [...steps].forEach((s,i)=>{s.classList.toggle("done",i<progress);s.classList.toggle("active",i===progress&&progress<3)});
 }
 function repairMistake(message){if(!repairGame)return;repairGame.attempts++;$("#repairAttempts").textContent="Attempts: "+repairGame.attempts;let hint=message;if(difficulty!=="hard"&&repairGame.attempts>=4)hint+=" Try isolating the power first.";else if(difficulty!=="hard"&&repairGame.attempts>=2)hint+=" Think about what should happen before equipment is repaired.";$("#repairStatus").textContent="⚠️ "+hint;$("#cableBoard").classList.add("wrong");setTimeout(()=>$("#cableBoard").classList.remove("wrong"),350);}
-function tryRepairSocket(side){
-  if(!repairGame)return;
-  if(!repairGame.powerOff){repairMistake("POWER IS STILL ON — shut off power before working on the line.");return;}
-  if(!repairGame.wireRemoved){repairMistake("Remove the damaged wire first.");return;}
-  if(!repairGame.spoolSelected){repairMistake("Select the replacement wire spool first.");return;}
-  if(side==="left")repairGame.left=true;else repairGame.right=true;
-  $("#connection"+(side==="left"?"Left":"Right")).classList.add("connected");
-  if(repairGame.left&&repairGame.right){repairGame.connected=true;repairGame.step=4;$("#damagedWire").classList.add("installed");$("#repairStatus").textContent="✅ Both connectors locked. Restore power.";$("#restorePowerBtn").disabled=false;updateRepairSteps();}
-}
 function completeRepairMinigame(){
-  if(!repairGame?.connected||!repairGame.powerOn){if(repairGame)repairMistake("Turn power on before testing the repaired line.");return;}
+  if(!repairGame?.connected)return;
   const rating=repairGame.attempts===0?3:repairGame.attempts<=2?2:1;
   const bonus=rating===3?150:rating===2?100:50;
   const i=repairGame.component;
@@ -743,15 +731,10 @@ function completeRepairMinigame(){
   $("#repairStatus").textContent="⚡ POWER RESTORED — "+ratingText;say(ratingText+" <strong>Power can flow again.</strong>","🧰");
   $("#repairOverlay").classList.add("hidden");repairGame=null;renderMap();autoCheck();
 }
-$("#breakerControl").addEventListener("click",()=>{if(!repairGame)return;if(!repairGame.powerOff){repairGame.powerOff=true;repairGame.step=2;$("#breakerControl").textContent="🔓 POWER OFF";$("#breakerControl").classList.add("off");$("#cableBoard").classList.add("off");$("#repairStatus").textContent="Power is isolated. Inspect the damaged line.";updateRepairSteps();}else if(repairGame.connected&&!repairGame.powerOn){repairGame.powerOn=true;$("#breakerControl").textContent="🔒 POWER ON";$("#cableBoard").classList.remove("off");$("#repairElectricity").classList.add("flowing");$("#repairStatus").textContent="⚡ POWER RESTORED — press TEST POWER.";$("#restorePowerBtn").disabled=false;}else if(!repairGame.connected){repairMistake("The circuit is not ready yet.");}});
-$("#cutterTool").addEventListener("click",()=>{if(!repairGame)return;if(!repairGame.powerOff){repairMistake("Shut off power first.");return}repairGame.cutterSelected=true;$("#cutterTool").classList.add("selected");$("#repairStatus").textContent="Cutters ready. Click the red damaged section.";});
-$("#damagedWire").addEventListener("click",()=>{if(!repairGame)return;if(!repairGame.powerOff){repairMistake("POWER IS STILL ON — shut off power before working on the line.");return}if(!repairGame.cutterSelected){repairMistake("Select the wire cutters before removing the damaged section.");return}if(!repairGame.wireRemoved){repairGame.wireRemoved=true;repairGame.step=3;$("#damagedWire").classList.add("removed");$("#repairStatus").textContent="Damaged wire cut away. Select the replacement spool.";updateRepairSteps();}});
-$("#replacementSpool").addEventListener("click",()=>{if(!repairGame)return;if(!repairGame.wireRemoved){repairMistake("Remove the damaged wire first.");return}repairGame.spoolSelected=true;$("#replacementSpool").classList.add("selected");$("#repairStatus").textContent="Now connect both ends to the pole sockets.";});
-$("#replacementSpool").addEventListener("dragstart",()=>{if(repairGame)repairGame.spoolSelected=true});
-$("#connectionLeft").addEventListener("click",()=>tryRepairSocket("left"));$("#connectionRight").addEventListener("click",()=>tryRepairSocket("right"));
-$("#connectionLeft").addEventListener("dragover",e=>e.preventDefault());$("#connectionRight").addEventListener("dragover",e=>e.preventDefault());
-$("#connectionLeft").addEventListener("drop",e=>{e.preventDefault();if(repairGame)repairGame.spoolSelected=true;tryRepairSocket("left")});$("#connectionRight").addEventListener("drop",e=>{e.preventDefault();if(repairGame)repairGame.spoolSelected=true;tryRepairSocket("right")});
-$("#restorePowerBtn").addEventListener("click",completeRepairMinigame);
+$("#cutterTool").addEventListener("click",()=>{if(!repairGame)return;repairGame.cutterSelected=true;$("#cutterTool").classList.add("selected");$("#replacementSpool").classList.remove("selected");$("#repairStatus").textContent="Scissors selected. Click the damaged wire.";});
+$("#damagedWire").addEventListener("click",()=>{if(!repairGame)return;if(!repairGame.cutterSelected){repairMistake("Select SCISSORS to remove the broken wire.");return}if(!repairGame.wireRemoved){repairGame.wireRemoved=true;repairGame.cutterSelected=false;repairGame.step=2;$("#damagedWire").classList.add("removed");$("#cutterTool").classList.remove("selected");$("#repairGap").classList.add("ready");$("#repairStatus").textContent="✅ Damaged wire removed. Select NEW CABLE.";$("#replacementSpool").classList.add("selected");updateRepairSteps();}});
+$("#replacementSpool").addEventListener("click",()=>{if(!repairGame)return;if(!repairGame.wireRemoved){repairMistake("Remove the broken wire first.");$("#cutterTool").classList.add("selected");return}repairGame.spoolSelected=true;$("#replacementSpool").classList.add("selected");$("#repairStatus").textContent="New cable selected. Click the open gap.";$("#repairGap").classList.add("ready");});
+$("#repairGap").addEventListener("click",()=>{if(!repairGame)return;if(!repairGame.wireRemoved){repairMistake("Remove the broken wire first.");return}if(!repairGame.spoolSelected){repairMistake("Select NEW CABLE, then click the open gap.");return}repairGame.connected=true;repairGame.powerOn=true;$("#repairGap").classList.remove("ready");$("#repairGap").classList.add("installed");$("#repairGap").textContent="⚡ CABLE CONNECTED";$("#repairElectricity").classList.add("flowing");$("#repairStatus").textContent="⚡ POWER RESTORED!";updateRepairSteps();setTimeout(completeRepairMinigame,900);});
 function useTool(i,key){
   if(levelComplete||pendingEvent)return;
   hintHouse=null; hintTile=null;
