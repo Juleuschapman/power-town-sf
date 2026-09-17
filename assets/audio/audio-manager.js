@@ -9,6 +9,7 @@
   let ambience = null;
   let musicFade = null;
   let ambienceFade = null;
+  const sfxFiles = { lightSwitchOff: "light_switch_off.wav", lightSwitchOn: "light_switch_on.wav" };
 
   function loadSettings() {
     try {
@@ -84,7 +85,7 @@
 
   function playSfx(name) {
     if (!settings.sfxEnabled) return null;
-    const sound = safeAudio("sfx", name, false);
+    const sound = safeAudio("sfx", sfxFiles[name] || name, false);
     if (!sound) return null;
     sound.volume = settings.sfxVolume;
     sound.play().catch(() => {});
