@@ -9,7 +9,7 @@
   let ambience = null;
   let musicFade = null;
   let ambienceFade = null;
-  const sfxFiles = { buttonClick: "button-click.wav", lightSwitchOff: "light_switch_off.wav", lightSwitchOn: "light_switch_on.wav" };
+  const sfxFiles = { lightSwitchOff: "light_switch_off.wav", lightSwitchOn: "light_switch_on.wav" };
 
   function loadSettings() {
     try {
