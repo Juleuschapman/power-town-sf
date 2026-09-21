@@ -717,7 +717,7 @@ function renderDock(){
   Object.entries(PLANTS).forEach(([key,p])=>{
     const card=document.createElement("button"); card.className="plant-card";
     card.innerHTML="<span class='plant-icon'>"+p.icon+"</span> <strong>"+p.name+"</strong><small>⚡ "+p.output+" • "+(difficulty==="easy"?"FREE":"💰 $"+p.cost)+"</small><small>✓ "+p.strength+"</small><small>⚠ "+p.weakness+"</small>";
-    card.addEventListener("click",()=>{selected="plant:"+key;picker.classList.remove("show");$("#dockStatus").innerHTML="Selected <strong>"+p.name+"</strong>. Click or drag onto a square.";renderMap();});
+    card.addEventListener("click",()=>{selected="plant:"+key;AudioManager.playSfx("lightSwitchOn");picker.classList.remove("show");$("#dockStatus").innerHTML="Selected <strong>"+p.name+"</strong>. Click or drag onto a square.";renderMap();});
     picker.appendChild(card);
   });
   const order=[...shuffle(SHUFFLED_TOOLS),"erase"]; // bulldozer always last
@@ -735,6 +735,7 @@ function renderDock(){
         return;
       }
       selected=key;
+      AudioManager.playSfx("lightSwitchOn");
       app.querySelectorAll(".tool").forEach(x=>x.setAttribute("aria-pressed","false"));
       b.setAttribute("aria-pressed","true");
       $("#dockStatus").innerHTML="Selected <strong>"+t.name+"</strong>. Click a city square or drag the tool.";
@@ -841,7 +842,7 @@ function canAfford(cost){
   const pill=$("#budgetPill");pill.classList.add("shake");setTimeout(()=>pill.classList.remove("shake"),800);
   say("💰 <strong>Not enough money.</strong>","💰");return false;
 }
-function spend(cost){if(difficulty!=="easy")budget-=cost}
+function spend(cost){if(difficulty!=="easy"){budget-=cost;AudioManager.playSfx("lightSwitchOn")}}
 function flashMoney(kind){if(difficulty==="easy")return;const p=$("#budgetPill");p.classList.remove("flash-buy","flash-refund");void p.offsetWidth;p.classList.add(kind==="refund"?"flash-refund":"flash-buy");setTimeout(()=>p.classList.remove("flash-buy","flash-refund"),500)}
 let repairGame=null;
 let devTestActive=false, devTestType=null, devTestComponent=null;
@@ -932,7 +933,7 @@ $("#shortIsolateBtn").addEventListener("click",()=>{if(!shortGame||!shortGame.fo
 $("#shortBranchBHit").addEventListener("click",()=>{if(!shortGame||shortGame.tool!=="isolate")return;shortGame.isolated=true;AudioManager.playSfx("lightSwitchOn");shortGame.step=3;shortGame.tool=null;$("#branchB").classList.add("short-done");$("#shortFaultGlow").style.opacity="0";shortStatus("FAULT ISOLATED. Select REPAIR.");updateShortUi()});
 $("#shortRepairBtn").addEventListener("click",()=>{if(!shortGame||!shortGame.isolated)return;shortGame.tool="repair";AudioManager.playSfx("lightSwitchOn");$("#shortBranchBHit").classList.add("short-target");shortStatus("Click the damaged section to repair it.");updateShortUi()});
 $("#shortBranchBHit").addEventListener("click",()=>{if(!shortGame||shortGame.tool!=="repair")return;shortGame.repaired=true;AudioManager.playSfx("lightSwitchOn");shortGame.step=4;shortGame.tool=null;$("#branchB").classList.remove("fault");$("#shortFaultLine").style.opacity="0";$("#shortBranchBHit").classList.remove("short-target");shortStatus("The fault is repaired. Click RESET BREAKER.");updateShortUi()});
-$("#shortResetBtn").addEventListener("click",()=>{if(!shortGame||!shortGame.repaired){shortMistake("Repair the fault before resetting the breaker.");return}shortGame.breaker=true;AudioManager.playSfx("lightSwitchOn");AudioManager.playSfx("lightSwitchOn");shortGame.step=5;$("#shortBreakerState").textContent="CLOSED";$("#shortBreakerState").classList.add("closed");shortStatus("Breaker closed. Click TEST to restore the circuit.");updateShortUi()});
+$("#shortResetBtn").addEventListener("click",()=>{if(!shortGame||!shortGame.repaired){shortMistake("Repair the fault before resetting the breaker.");return}shortGame.breaker=true;AudioManager.playSfx("lightSwitchOn");shortGame.step=5;$("#shortBreakerState").textContent="CLOSED";$("#shortBreakerState").classList.add("closed");shortStatus("Breaker closed. Click TEST to restore the circuit.");updateShortUi()});
 $("#shortTestBtn").addEventListener("click",()=>{if(!shortGame||!shortGame.breaker){if(shortGame)shortMistake("Reset the breaker before testing.");return}shortGame.tested=true;AudioManager.playSfx("lightSwitchOn");updateShortUi();$("#shortBoard").classList.add("energized");["shortMain","branchA","branchB","branchC"].forEach(id=>$("#"+id).classList.add("short-done"));shortStatus("⚡ TESTING — current is flowing through the repaired branches.");setTimeout(completeShortRepair,900)});
 let windGame=null;
 function windMistake(message){AudioManager.playSfx("wrongAction");windStatus(message)}
@@ -963,6 +964,7 @@ function useTool(i,key){
   const plantType=String(key).startsWith("plant:")?String(key).split(":")[1]:key==="plant"?"solar":null;
 
   if(plantType&&difficulty==="hard"&&!plantZone(i,plantType)){
+    AudioManager.playSfx("wrongAction");
     say("🚫 <strong>This plant cannot be built here.</strong> Choose a glowing zone.","🚫");
     const badTile=app.querySelector('.tile[data-index="'+i+'"]');
     if(badTile){badTile.classList.add("broken");setTimeout(()=>badTile.classList.remove("broken"),450)}
@@ -977,6 +979,7 @@ function useTool(i,key){
       if(difficulty!=="easy") budget+=refund;
       flashMoney("refund");
       pieces[i]=null;
+      AudioManager.playSfx("lightSwitchOn");
       score=Math.max(0,score-5);
       const removedName=removed.type==="plant"?(PLANTS[removed.plantType]?.name||"POWER PLANT"):(TOOL_INFO[removed.type]?.name||"equipment");
       say("🚜 Removed <strong>"+removedName+"</strong>. Refund: <strong>+$"+refund+"</strong>. The road stays.","🚜");
@@ -988,7 +991,7 @@ function useTool(i,key){
     if(pieces[i]?.broken){
       if(pieces[i].repairKind==="line"){
         if(difficulty==="easy"){
-          pieces[i].broken=false;pieces[i].fault=false;score+=75;say("🧰 <strong>Line repaired.</strong> Power can flow again.","🧰");renderMap();autoCheck();return;
+          pieces[i].broken=false;pieces[i].fault=false;score+=75;AudioManager.playSfx("lightSwitchOn");say("🧰 <strong>Line repaired.</strong> Power can flow again.","🧰");renderMap();autoCheck();return;
         }
         if(difficulty==="hard"&&busyCrews>=repairCrews){say("🧰 <strong>All repair crews are busy.</strong>","🧰");return;}
         if(!canAfford(COSTS.repair))return;
@@ -999,7 +1002,7 @@ function useTool(i,key){
       }
       if(pieces[i].repairKind==="tower"){
         if(difficulty==="easy"){
-          pieces[i].broken=false;pieces[i].fault=false;score+=75;say("🧰 <strong>Tower repaired.</strong> Transmission can flow again.","🧰");renderMap();autoCheck();return;
+          pieces[i].broken=false;pieces[i].fault=false;score+=75;AudioManager.playSfx("lightSwitchOn");say("🧰 <strong>Tower repaired.</strong> Transmission can flow again.","🧰");renderMap();autoCheck();return;
         }
         if(difficulty==="hard"&&busyCrews>=repairCrews){say("🧰 <strong>All repair crews are busy.</strong>","🧰");return;}
         if(!canAfford(COSTS.repair))return;
@@ -1010,7 +1013,7 @@ function useTool(i,key){
       }
       if(pieces[i].repairKind==="transformer"){
         if(difficulty==="easy"){
-          pieces[i].broken=false;pieces[i].fault=false;score+=75;say("🧰 <strong>Transformer repaired.</strong> Neighborhood power can flow again.","🧰");renderMap();autoCheck();return;
+          pieces[i].broken=false;pieces[i].fault=false;score+=75;AudioManager.playSfx("lightSwitchOn");say("🧰 <strong>Transformer repaired.</strong> Neighborhood power can flow again.","🧰");renderMap();autoCheck();return;
         }
         if(difficulty==="hard"&&busyCrews>=repairCrews){say("🧰 <strong>All repair crews are busy.</strong>","🧰");return;}
         if(!canAfford(COSTS.repair))return;
@@ -1021,7 +1024,7 @@ function useTool(i,key){
       }
       if(pieces[i].repairKind==="short"){
         if(difficulty==="easy"){
-          pieces[i].broken=false;pieces[i].fault=false;score+=75;say("🧰 <strong>Short circuit repaired.</strong> Power can flow again.","🧰");renderMap();autoCheck();return;
+          pieces[i].broken=false;pieces[i].fault=false;score+=75;AudioManager.playSfx("lightSwitchOn");say("🧰 <strong>Short circuit repaired.</strong> Power can flow again.","🧰");renderMap();autoCheck();return;
         }
         if(difficulty==="hard"&&busyCrews>=repairCrews){say("🧰 <strong>All repair crews are busy.</strong>","🧰");return;}
         if(!canAfford(COSTS.repair))return;
@@ -1031,7 +1034,7 @@ function useTool(i,key){
         return;
       }
       if(pieces[i].repairKind==="wind"){
-        if(difficulty==="easy"){pieces[i].broken=false;pieces[i].fault=false;score+=75;say("🧰 <strong>Wind damage repaired.</strong> Power can flow again.","🧰");renderMap();autoCheck();return;}
+        if(difficulty==="easy"){pieces[i].broken=false;pieces[i].fault=false;score+=75;AudioManager.playSfx("lightSwitchOn");say("🧰 <strong>Wind damage repaired.</strong> Power can flow again.","🧰");renderMap();autoCheck();return;}
         if(difficulty==="hard"&&busyCrews>=repairCrews){say("🧰 <strong>All repair crews are busy.</strong>","🧰");return;}
         if(!canAfford(COSTS.repair))return;spend(COSTS.repair);flashMoney("buy");if(difficulty==="hard")busyCrews++;openWindRepairMinigame(i);return;
       }
@@ -1041,7 +1044,7 @@ function useTool(i,key){
         const repairTime=pieces[i].repairKind==="tree"?3000:pieces[i].repairKind==="line"?4000:3000;
         say("🧰 Repair crew dispatched. Restoring power in <strong>"+Math.ceil(repairTime/1000)+" seconds</strong>…","🧰");
         renderMap();
-        setTimeout(()=>{if(pieces[i]?.broken){pieces[i].broken=false;pieces[i].fault=false;busyCrews--;score+=75;say("⚡ <strong>Repair complete!</strong> Power can flow again.","🧰");renderMap();autoCheck();}},repairTime);
+        setTimeout(()=>{if(pieces[i]?.broken){pieces[i].broken=false;pieces[i].fault=false;busyCrews--;score+=75;AudioManager.playSfx("lightSwitchOn");say("⚡ <strong>Repair complete!</strong> Power can flow again.","🧰");renderMap();autoCheck();}},repairTime);
         return;
       }
       if(!canAfford(COSTS.repair))return;
@@ -1050,9 +1053,11 @@ function useTool(i,key){
       pieces[i].broken=false;
       pieces[i].fault=false;
       score+=75;
+      AudioManager.playSfx("lightSwitchOn");
       say("🧰 <strong>Repair complete!</strong> Checking the grid…","🧰");
       renderMap(); autoCheck();
     }else{
+      AudioManager.playSfx("wrongAction");
       say("🧰 Find the grid part glowing <strong>red</strong>.","🧰");
     }
     return;
@@ -1060,11 +1065,12 @@ function useTool(i,key){
 
   const actualType=plantType?"plant":key;
   const cost=pieceCost(key);
-  if(pieces[i]){say("🚫 Bulldoze the existing equipment first, then place the new component.","🚜");return;}
+  if(pieces[i]){AudioManager.playSfx("wrongAction");say("🚫 Bulldoze the existing equipment first, then place the new component.","🚜");return;}
   if(!canAfford(cost))return;
   spend(cost);
   flashMoney("buy");
   pieces[i]={type:actualType,plantType:plantType||null,output:plantType?PLANTS[plantType].output:0,cost,purchaseCost:cost,broken:false,fault:false,online:false};
+  if(difficulty==="easy")AudioManager.playSfx("lightSwitchOn");
   score+=5;
   renderMap();
   autoCheck();
@@ -1276,6 +1282,7 @@ function checkEvent(){
   coldSnap=false;
   wasHealthy=true;
   $("#repairBanner").classList.remove("show");
+  AudioManager.playSfx("lightSwitchOn");
   say("⭐ <strong>POWER RESTORED!</strong> Emergency "+rescues+" of "+cfg().rescues+" cleared.","🥳");
   renderMap();
 
@@ -1295,6 +1302,7 @@ function finishLevel(){
   if(levelComplete)return;
   levelComplete=true;
   score+=300;
+  AudioManager.playSfx("lightSwitchOn");
   completedStars[level]=3;
   if(level<4)unlocked=Math.max(unlocked,level+2);
   saveProgress();
@@ -1321,9 +1329,11 @@ function toggleBreaker(){
       return;
     }
     breakerOpen=false;
+    AudioManager.playSfx("lightSwitchOn");
     say("🔐 Breaker closed. Electricity can flow again.");
   }else{
     breakerOpen=true;
+    AudioManager.playSfx("lightSwitchOff");
     say("🔓 Breaker opened. The city is disconnected from the grid.");
   }
   renderMap();
@@ -1332,6 +1342,7 @@ function toggleBreaker(){
 
 function resetLevel(){
   if(!confirm("Reset this level and rebuild the grid?"))return;
+  AudioManager.playSfx("lightSwitchOn");
   loadLevel(level);
 }
 
@@ -1379,18 +1390,20 @@ function loadLevel(i){
   renderMap();
 }
 
-$("#hintBtn").addEventListener("click",showHint);
+$("#hintBtn").addEventListener("click",()=>{AudioManager.playSfx("lightSwitchOn");showHint()});
 $("#breakerBtn").addEventListener("click",toggleBreaker);
 $("#resetBtn").addEventListener("click",resetLevel);
-$("#respondBtn").addEventListener("click",respondToEmergency);
-$("#nextBtn").addEventListener("click",()=>{if(level<4)loadLevel(level+1)});
+$("#respondBtn").addEventListener("click",()=>{AudioManager.playSfx("lightSwitchOn");respondToEmergency()});
+$("#nextBtn").addEventListener("click",()=>{if(level<4){AudioManager.playSfx("lightSwitchOn");loadLevel(level+1)}});
 document.querySelectorAll("[data-difficulty]").forEach(button=>button.addEventListener("click",()=>{
+  AudioManager.playSfx("lightSwitchOn");
   selectedDifficulty=button.dataset.difficulty;
   document.querySelectorAll("[data-difficulty]").forEach(x=>{x.classList.toggle("selected",x===button);x.textContent=(x===button?"✓ ":"")+x.dataset.difficulty.toUpperCase()});
   const play=document.getElementById("playBtn");play.disabled=false;play.innerHTML="▶ PLAY "+selectedDifficulty.toUpperCase();
 }));
 document.getElementById("playBtn").addEventListener("click",()=>{
   if(!selectedDifficulty)return;
+  AudioManager.playSfx("lightSwitchOn");
   difficulty=selectedDifficulty;
   saveProgress();
   loadLevel(0);
