@@ -10,6 +10,9 @@
   let musicFade = null;
   let ambienceFade = null;
   const sfxFiles = { wrongAction: "wrong-action.wav", lightSwitchOff: "light_switch_off.wav", lightSwitchOn: "light_switch_on.wav" };
+  const synthSfx = new Set(["repairSuccess", "electricityConnect", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert"]);
+  const synthLastPlayed = Object.create(null);
+  let audioContext = null;
 
   function loadSettings() {
     try {
@@ -83,8 +86,70 @@
     fade(old, 0, 300, () => { old.pause(); old.src = ""; });
   }
 
+  function getAudioContext() {
+    if (!audioContext) {
+      const AudioContextClass = root.AudioContext || root.webkitAudioContext;
+      if (!AudioContextClass) return null;
+      try { audioContext = new AudioContextClass(); } catch (error) { return null; }
+    }
+    if (audioContext.state === "suspended") audioContext.resume().catch(() => {});
+    return audioContext;
+  }
+
+  function playSynth(name) {
+    if (!settings.sfxEnabled || !synthSfx.has(name)) return null;
+    const now = performance.now();
+    const cooldown = name === "levelComplete" ? 900 : name === "emergencyAlert" ? 500 : 80;
+    if (now - (synthLastPlayed[name] || -Infinity) < cooldown) return null;
+    synthLastPlayed[name] = now;
+    const context = getAudioContext();
+    if (!context) return null;
+    const output = context.createGain();
+    output.gain.value = Math.max(0, Math.min(1, settings.sfxVolume)) * 0.42;
+    output.connect(context.destination);
+    const start = context.currentTime + 0.005;
+    const tone = (frequency, duration, offset, type = "sine", peak = 0.16, endFrequency = frequency) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, start + offset);
+      if (endFrequency !== frequency) oscillator.frequency.exponentialRampToValueAtTime(Math.max(40, endFrequency), start + offset + duration);
+      gain.gain.setValueAtTime(0.0001, start + offset);
+      gain.gain.exponentialRampToValueAtTime(peak, start + offset + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + offset + duration);
+      oscillator.connect(gain).connect(output);
+      oscillator.start(start + offset);
+      oscillator.stop(start + offset + duration + 0.02);
+    };
+    if (name === "repairSuccess") {
+      tone(180, 0.08, 0, "triangle", 0.18, 260);
+      tone(420, 0.14, 0.055, "sine", 0.13, 560);
+    } else if (name === "electricityConnect") {
+      tone(260, 0.16, 0, "sawtooth", 0.1, 1100);
+      tone(880, 0.12, 0.035, "sine", 0.08, 1450);
+    } else if (name === "powerRestored") {
+      tone(300, 0.2, 0, "sine", 0.13, 620);
+      tone(620, 0.28, 0.12, "sine", 0.12, 980);
+      tone(980, 0.32, 0.25, "triangle", 0.1, 1180);
+    } else if (name === "moneyTransaction") {
+      tone(620, 0.1, 0, "sine", 0.12, 760);
+      tone(920, 0.14, 0.07, "sine", 0.1, 1120);
+    } else if (name === "levelComplete") {
+      tone(392, 0.22, 0, "sine", 0.12, 392);
+      tone(494, 0.22, 0.16, "sine", 0.12, 494);
+      tone(587, 0.22, 0.32, "sine", 0.12, 587);
+      tone(784, 0.42, 0.48, "triangle", 0.14, 784);
+    } else if (name === "emergencyAlert") {
+      tone(560, 0.18, 0, "square", 0.08, 470);
+      tone(560, 0.18, 0.22, "square", 0.08, 470);
+    }
+    setTimeout(() => { try { output.disconnect(); } catch (error) {} }, 1200);
+    return output;
+  }
+
   function playSfx(name) {
     if (!settings.sfxEnabled) return null;
+    if (synthSfx.has(name)) return playSynth(name);
     const sound = safeAudio("sfx", sfxFiles[name] || name, false);
     if (!sound) return null;
     sound.volume = settings.sfxVolume;
@@ -121,7 +186,7 @@
   function setSfxVolume(value) { settings.sfxVolume = clamp(value); saveSettings(); return settings.sfxVolume; }
   function setAmbienceVolume(value) { settings.ambienceVolume = clamp(value); saveSettings(); if (ambience) ambience.volume = settings.ambienceEnabled ? settings.ambienceVolume : 0; return settings.ambienceVolume; }
 
-  root.AudioManager = { playMusic, stopMusic, playSfx, playAmbience, stopAmbience, toggleMusic, toggleSfx, toggleAmbience, setMusicVolume, setSfxVolume, setAmbienceVolume, getSettings: () => Object.assign({}, settings) };
+  root.AudioManager = { playMusic, stopMusic, playSfx, playSynth, playAmbience, stopAmbience, toggleMusic, toggleSfx, toggleAmbience, setMusicVolume, setSfxVolume, setAmbienceVolume, getSettings: () => Object.assign({}, settings) };
   root.playMusic = playMusic; root.stopMusic = stopMusic; root.playSfx = playSfx; root.playAmbience = playAmbience; root.stopAmbience = stopAmbience;
   root.toggleMusic = toggleMusic; root.toggleSfx = toggleSfx; root.toggleAmbience = toggleAmbience;
   root.setMusicVolume = setMusicVolume; root.setSfxVolume = setSfxVolume; root.setAmbienceVolume = setAmbienceVolume;
