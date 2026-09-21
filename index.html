@@ -409,7 +409,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
   <div class="intro-actions"><button id="introSoundBtn" type="button">🔊 SOUND ON</button><button id="skipIntroBtn" type="button">SKIP INTRO &gt;</button></div>
 </section>
 
-<script src="assets/audio/audio-manager.js"></script>
+<script src="assets/audio/audio-manager.js?v=1.1"></script>
 <script>
 (()=>{
 "use strict";
@@ -474,6 +474,7 @@ const TOOL_INFO={
   repair:{name:"Repair Crew",icon:"🧰",label:"REPAIR",tip:"Fix red damage"},
   erase:{name:"Bulldozer",icon:"🚜",label:"REMOVE",tip:"Remove grid part"}
 };
+const GRID_TOOL_SFX={plant:"powerRestored",tx:"towerPlacement",sub:"electricityConnect",dist:"electricityConnect",transformer:"transformerPower",service:"electricityConnect",repair:"repairSuccess",erase:"treeMovement"};
 const PLANTS={
   solar:{name:"SOLAR FARM",icon:"☀️",output:90,cost:150,strength:"Cheap",weakness:"Weak in heavy rain"},
   wind:{name:"WIND FARM",icon:"💨",output:110,cost:180,strength:"Inexpensive generation",weakness:"Can be damaged by high winds"},
@@ -717,7 +718,7 @@ function renderDock(){
   Object.entries(PLANTS).forEach(([key,p])=>{
     const card=document.createElement("button"); card.className="plant-card";
     card.innerHTML="<span class='plant-icon'>"+p.icon+"</span> <strong>"+p.name+"</strong><small>⚡ "+p.output+" • "+(difficulty==="easy"?"FREE":"💰 $"+p.cost)+"</small><small>✓ "+p.strength+"</small><small>⚠ "+p.weakness+"</small>";
-    card.addEventListener("click",()=>{selected="plant:"+key;AudioManager.playSfx("lightSwitchOn");picker.classList.remove("show");$("#dockStatus").innerHTML="Selected <strong>"+p.name+"</strong>. Click or drag onto a square.";renderMap();});
+    card.addEventListener("click",()=>{selected="plant:"+key;AudioManager.playSfx(GRID_TOOL_SFX.plant);picker.classList.remove("show");$("#dockStatus").innerHTML="Selected <strong>"+p.name+"</strong>. Click or drag onto a square.";renderMap();});
     picker.appendChild(card);
   });
   const order=[...shuffle(SHUFFLED_TOOLS),"erase"]; // bulldozer always last
@@ -735,7 +736,7 @@ function renderDock(){
         return;
       }
       selected=key;
-      AudioManager.playSfx("lightSwitchOn");
+      AudioManager.playSfx(GRID_TOOL_SFX[key]||"lightSwitchOn");
       app.querySelectorAll(".tool").forEach(x=>x.setAttribute("aria-pressed","false"));
       b.setAttribute("aria-pressed","true");
       $("#dockStatus").innerHTML="Selected <strong>"+t.name+"</strong>. Click a city square or drag the tool.";
@@ -1070,7 +1071,7 @@ function useTool(i,key){
   spend(cost);
   flashMoney("buy");
   pieces[i]={type:actualType,plantType:plantType||null,output:plantType?PLANTS[plantType].output:0,cost,purchaseCost:cost,broken:false,fault:false,online:false};
-  if(difficulty==="easy")AudioManager.playSfx("lightSwitchOn");
+  AudioManager.playSfx(GRID_TOOL_SFX[actualType]||"lightSwitchOn");
   score+=5;
   renderMap();
   autoCheck();
@@ -1196,7 +1197,7 @@ function startEmergency(){
   }
 
   renderMap(); // HUD changes BEFORE overlay
-  AudioManager.playSfx("emergencyAlert");
+  AudioManager.playSfx(type==="wind"?"windEmergency":"emergencyAlert");
   showEmergencyOverlay(type);
 }
 

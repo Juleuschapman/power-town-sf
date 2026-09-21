@@ -10,7 +10,7 @@
   let musicFade = null;
   let ambienceFade = null;
   const sfxFiles = { wrongAction: "wrong-action.wav", lightSwitchOff: "light_switch_off.wav", lightSwitchOn: "light_switch_on.wav" };
-  const synthSfx = new Set(["repairSuccess", "electricityConnect", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert"]);
+  const synthSfx = new Set(["repairSuccess", "electricityConnect", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement", "cut", "treeMovement"]);
   const synthLastPlayed = Object.create(null);
   let audioContext = null;
 
@@ -92,23 +92,15 @@
       if (!AudioContextClass) return null;
       try { audioContext = new AudioContextClass(); } catch (error) { return null; }
     }
-    if (audioContext.state === "suspended") audioContext.resume().catch(() => {});
     return audioContext;
   }
 
-  function playSynth(name) {
-    if (!settings.sfxEnabled || !synthSfx.has(name)) return null;
-    const now = performance.now();
-    const cooldown = name === "levelComplete" ? 900 : name === "emergencyAlert" ? 500 : 80;
-    if (now - (synthLastPlayed[name] || -Infinity) < cooldown) return null;
-    synthLastPlayed[name] = now;
-    const context = getAudioContext();
-    if (!context) return null;
+  function scheduleSynth(name, context) {
     const output = context.createGain();
-    output.gain.value = Math.max(0, Math.min(1, settings.sfxVolume)) * 0.42;
+    output.gain.value = Math.max(0, Math.min(1, settings.sfxVolume)) * 0.72;
     output.connect(context.destination);
-    const start = context.currentTime + 0.005;
-    const tone = (frequency, duration, offset, type = "sine", peak = 0.16, endFrequency = frequency) => {
+    const start = context.currentTime + 0.01;
+    const tone = (frequency, duration, offset, type = "sine", peak = 0.2, endFrequency = frequency) => {
       const oscillator = context.createOscillator();
       const gain = context.createGain();
       oscillator.type = type;
@@ -122,29 +114,57 @@
       oscillator.stop(start + offset + duration + 0.02);
     };
     if (name === "repairSuccess") {
-      tone(180, 0.08, 0, "triangle", 0.18, 260);
-      tone(420, 0.14, 0.055, "sine", 0.13, 560);
+      tone(180, 0.08, 0, "triangle", 0.25, 260);
+      tone(420, 0.14, 0.055, "sine", 0.19, 560);
     } else if (name === "electricityConnect") {
-      tone(260, 0.16, 0, "sawtooth", 0.1, 1100);
-      tone(880, 0.12, 0.035, "sine", 0.08, 1450);
+      tone(260, 0.16, 0, "sawtooth", 0.15, 1100);
+      tone(880, 0.12, 0.035, "sine", 0.12, 1450);
     } else if (name === "powerRestored") {
-      tone(300, 0.2, 0, "sine", 0.13, 620);
-      tone(620, 0.28, 0.12, "sine", 0.12, 980);
-      tone(980, 0.32, 0.25, "triangle", 0.1, 1180);
+      tone(300, 0.2, 0, "sine", 0.2, 620);
+      tone(620, 0.28, 0.12, "sine", 0.18, 980);
+      tone(980, 0.32, 0.25, "triangle", 0.16, 1180);
     } else if (name === "moneyTransaction") {
-      tone(620, 0.1, 0, "sine", 0.12, 760);
-      tone(920, 0.14, 0.07, "sine", 0.1, 1120);
+      tone(620, 0.1, 0, "sine", 0.17, 760);
+      tone(920, 0.14, 0.07, "sine", 0.15, 1120);
     } else if (name === "levelComplete") {
-      tone(392, 0.22, 0, "sine", 0.12, 392);
-      tone(494, 0.22, 0.16, "sine", 0.12, 494);
-      tone(587, 0.22, 0.32, "sine", 0.12, 587);
-      tone(784, 0.42, 0.48, "triangle", 0.14, 784);
+      tone(392, 0.22, 0, "sine", 0.18, 392);
+      tone(494, 0.22, 0.16, "sine", 0.18, 494);
+      tone(587, 0.22, 0.32, "sine", 0.18, 587);
+      tone(784, 0.42, 0.48, "triangle", 0.21, 784);
     } else if (name === "emergencyAlert") {
-      tone(560, 0.18, 0, "square", 0.08, 470);
-      tone(560, 0.18, 0.22, "square", 0.08, 470);
+      tone(560, 0.18, 0, "square", 0.12, 470);
+      tone(560, 0.18, 0.22, "square", 0.12, 470);
+    } else if (name === "windEmergency") {
+      tone(170, 0.35, 0, "sawtooth", 0.1, 90);
+      tone(260, 0.28, 0.08, "triangle", 0.12, 120);
+    } else if (name === "transformerPower") {
+      tone(110, 0.2, 0, "sine", 0.2, 125);
+      tone(330, 0.16, 0.035, "triangle", 0.14, 390);
+    } else if (name === "towerPlacement") {
+      tone(150, 0.1, 0, "triangle", 0.2, 105);
+      tone(520, 0.08, 0.06, "square", 0.12, 560);
+    } else if (name === "cut") {
+      tone(760, 0.055, 0, "square", 0.14, 540);
+      tone(980, 0.055, 0.065, "square", 0.12, 690);
+    } else if (name === "treeMovement") {
+      tone(120, 0.16, 0, "triangle", 0.2, 78);
+      tone(220, 0.12, 0.08, "sine", 0.12, 150);
     }
     setTimeout(() => { try { output.disconnect(); } catch (error) {} }, 1200);
     return output;
+  }
+
+  function playSynth(name) {
+    if (!settings.sfxEnabled || !synthSfx.has(name)) return null;
+    const now = performance.now();
+    const cooldown = name === "levelComplete" ? 900 : name === "emergencyAlert" ? 500 : 80;
+    if (now - (synthLastPlayed[name] || -Infinity) < cooldown) return null;
+    synthLastPlayed[name] = now;
+    const context = getAudioContext();
+    if (!context) return null;
+    const resume = context.state === "suspended" ? context.resume() : Promise.resolve();
+    resume.then(() => scheduleSynth(name, context)).catch(() => {});
+    return context;
   }
 
   function playSfx(name) {
