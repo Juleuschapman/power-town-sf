@@ -409,7 +409,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
   <div class="intro-actions"><button id="introSoundBtn" type="button">🔊 SOUND ON</button><button id="skipIntroBtn" type="button">SKIP INTRO &gt;</button></div>
 </section>
 
-<script src="assets/audio/audio-manager.js?v=1.5"></script>
+<script src="assets/audio/audio-manager.js?v=1.6"></script>
 <script>
 (()=>{
 "use strict";
@@ -505,6 +505,8 @@ let coldSnap=false;
 let score=0;
 let levelComplete=false;
 let wasHealthy=false;
+let previousServedCustomers=new Set();
+let hasRenderedNetwork=false;
 let reserveWaiting=false;
 let eventHistory=[];
 let hintHouse=null;
@@ -751,6 +753,12 @@ function renderDock(){
 
 function renderMap(){
   const n=computeNetwork(), bmap=buildings(), roads=roadData(), map=$("#map");
+  // Play once when one or more homes actually transition from unpowered to powered.
+  if(hasRenderedNetwork && n.servedCustomers.some(i=>!previousServedCustomers.has(i))){
+    AudioManager.playPlacementSound("homePowerOn");
+  }
+  previousServedCustomers=new Set(n.servedCustomers);
+  hasRenderedNetwork=true;
   map.style.gridTemplateColumns="repeat("+cfg().cols+",66px)";
   map.style.gridAutoRows="66px";
   map.innerHTML="";
@@ -1072,6 +1080,9 @@ function useTool(i,key){
   flashMoney("buy");
   pieces[i]={type:actualType,plantType:plantType||null,output:plantType?PLANTS[plantType].output:0,cost,purchaseCost:cost,broken:false,fault:false,online:false};
   if(plantType) AudioManager.playPlacementSound(plantType);
+  else if(actualType==="tx") AudioManager.playPlacementSound("transmission");
+  else if(actualType==="sub") AudioManager.playPlacementSound("substation");
+  else if(actualType==="transformer") AudioManager.playPlacementSound("transformer");
   else AudioManager.playSfx(GRID_TOOL_SFX[actualType]||"lightSwitchOn");
   score+=5;
   renderMap();
@@ -1377,6 +1388,8 @@ function loadLevel(i){
   wasHealthy=false;
   eventHistory=[];
   reserveWaiting=false;
+  previousServedCustomers=new Set();
+  hasRenderedNetwork=false;
   hintHouse=null;
   hintTile=null;
   $("#eventOverlay").classList.add("hidden");
