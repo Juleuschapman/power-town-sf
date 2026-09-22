@@ -214,11 +214,12 @@
       nuclear: "placeNuclear"
     }[normalizePlantType(type)];
     placementAudioUnlocked = true; // Successful placement is itself a user gesture (including keyboard activation).
+    if (!settings.sfxEnabled) return null;
     const template = key ? placementAudio[key] : null;
     if (!template) return null;
     try {
       const sound = template.cloneNode();
-      sound.volume = placementVolumes[key];
+      sound.volume = placementVolumes[key] * settings.sfxVolume;
       sound.currentTime = 0;
       const play = sound.play();
       if (play && play.catch) play.catch(() => {});
