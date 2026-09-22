@@ -409,7 +409,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
   <div class="intro-actions"><button id="introSoundBtn" type="button">🔊 SOUND ON</button><button id="skipIntroBtn" type="button">SKIP INTRO &gt;</button></div>
 </section>
 
-<script src="assets/audio/audio-manager.js?v=1.7"></script>
+<script src="assets/audio/audio-manager.js?v=1.9"></script>
 <script>
 (()=>{
 "use strict";
@@ -988,6 +988,7 @@ function useTool(i,key){
       if(difficulty!=="easy") budget+=refund;
       flashMoney("refund");
       pieces[i]=null;
+      AudioManager.playPlacementSound("demolish");
       AudioManager.playSfx("moneyTransaction");
       score=Math.max(0,score-5);
       const removedName=removed.type==="plant"?(PLANTS[removed.plantType]?.name||"POWER PLANT"):(TOOL_INFO[removed.type]?.name||"equipment");
