@@ -409,7 +409,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
   <div class="intro-actions"><button id="introSoundBtn" type="button">🔊 SOUND ON</button><button id="skipIntroBtn" type="button">SKIP INTRO &gt;</button></div>
 </section>
 
-<script src="assets/audio/audio-manager.js?v=1.2"></script>
+<script src="assets/audio/audio-manager.js?v=1.3"></script>
 <script>
 (()=>{
 "use strict";
@@ -1071,7 +1071,8 @@ function useTool(i,key){
   spend(cost);
   flashMoney("buy");
   pieces[i]={type:actualType,plantType:plantType||null,output:plantType?PLANTS[plantType].output:0,cost,purchaseCost:cost,broken:false,fault:false,online:false};
-  AudioManager.playSfx(GRID_TOOL_SFX[actualType]||"lightSwitchOn");
+  if(plantType) AudioManager.playPlacementSound(plantType);
+  else AudioManager.playSfx(GRID_TOOL_SFX[actualType]||"lightSwitchOn");
   score+=5;
   renderMap();
   autoCheck();

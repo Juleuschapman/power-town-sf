@@ -9,10 +9,10 @@
   let ambience = null;
   let musicFade = null;
   let ambienceFade = null;
-  const sfxFiles = { wrongAction: "wrong-action.wav", lightSwitchOff: "light_switch_off.wav", lightSwitchOn: "light_switch_on.wav" };
+  const sfxFiles = { wrongAction: "wrong-action.wav", lightSwitchOff: "light_switch_off.wav", lightSwitchOn: "light_switch_on.wav", placeGas: "place-gas.wav", placeSolar: "place-solar.wav", placeWind: "place-wind.wav", placeNuclear: "place-nuclear.wav" };
   // During the temporary sound pass, only these three approved sounds may play.
   // Other synth/file definitions remain available for a later sound-design pass.
-  const activeSfx = new Set(["wrongAction", "lightSwitchOff", "lightSwitchOn"]);
+  const activeSfx = new Set(["wrongAction", "lightSwitchOff", "lightSwitchOn", "placeGas", "placeSolar", "placeWind", "placeNuclear"]);
   const synthSfx = new Set(["repairSuccess", "electricityConnect", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement", "cut", "treeMovement"]);
   const synthLastPlayed = Object.create(null);
   let audioContext = null;
@@ -41,14 +41,14 @@
     return value.includes("/") ? value : `assets/audio/${folder}/${value}${/\.[a-z0-9]+$/i.test(value) ? "" : ".mp3"}`;
   }
 
-  function safeAudio(folder, name, loop) {
+  function safeAudio(folder, name, loop, silentMissing = false) {
     const src = filePath(folder, name);
     if (!src) return null;
     try {
       const audio = new Audio(src);
       audio.loop = !!loop;
       audio.preload = "auto";
-      audio.addEventListener("error", () => console.warn("Power Town audio file unavailable:", src), { once: true });
+      if (!silentMissing) audio.addEventListener("error", () => console.warn("Power Town audio file unavailable:", src), { once: true });
       return audio;
     } catch (error) {
       return null;
@@ -173,11 +173,22 @@
   function playSfx(name) {
     if (!settings.sfxEnabled || !activeSfx.has(name)) return null;
     if (synthSfx.has(name)) return playSynth(name);
-    const sound = safeAudio("sfx", sfxFiles[name] || name, false);
+    const sound = safeAudio("sfx", sfxFiles[name] || name, false, /^place[A-Z]/.test(name));
     if (!sound) return null;
     sound.volume = settings.sfxVolume;
     sound.play().catch(() => {});
     return sound;
+  }
+
+  function playPlacementSound(type) {
+    const key = {
+      gas: "placeGas",
+      naturalGas: "placeGas",
+      solar: "placeSolar",
+      wind: "placeWind",
+      nuclear: "placeNuclear"
+    }[String(type)];
+    return key ? playSfx(key) : null;
   }
 
   function playAmbience(name) {
@@ -209,7 +220,7 @@
   function setSfxVolume(value) { settings.sfxVolume = clamp(value); saveSettings(); return settings.sfxVolume; }
   function setAmbienceVolume(value) { settings.ambienceVolume = clamp(value); saveSettings(); if (ambience) ambience.volume = settings.ambienceEnabled ? settings.ambienceVolume : 0; return settings.ambienceVolume; }
 
-  root.AudioManager = { playMusic, stopMusic, playSfx, playSynth, playAmbience, stopAmbience, toggleMusic, toggleSfx, toggleAmbience, setMusicVolume, setSfxVolume, setAmbienceVolume, getSettings: () => Object.assign({}, settings) };
+  root.AudioManager = { playMusic, stopMusic, playSfx, playPlacementSound, playSynth, playAmbience, stopAmbience, toggleMusic, toggleSfx, toggleAmbience, setMusicVolume, setSfxVolume, setAmbienceVolume, getSettings: () => Object.assign({}, settings) };
   root.playMusic = playMusic; root.stopMusic = stopMusic; root.playSfx = playSfx; root.playAmbience = playAmbience; root.stopAmbience = stopAmbience;
   root.toggleMusic = toggleMusic; root.toggleSfx = toggleSfx; root.toggleAmbience = toggleAmbience;
   root.setMusicVolume = setMusicVolume; root.setSfxVolume = setSfxVolume; root.setAmbienceVolume = setAmbienceVolume;
