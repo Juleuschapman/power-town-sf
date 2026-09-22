@@ -10,6 +10,9 @@
   let musicFade = null;
   let ambienceFade = null;
   const sfxFiles = { wrongAction: "wrong-action.wav", lightSwitchOff: "light_switch_off.wav", lightSwitchOn: "light_switch_on.wav" };
+  // During the temporary sound pass, only these three approved sounds may play.
+  // Other synth/file definitions remain available for a later sound-design pass.
+  const activeSfx = new Set(["wrongAction", "lightSwitchOff", "lightSwitchOn"]);
   const synthSfx = new Set(["repairSuccess", "electricityConnect", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement", "cut", "treeMovement"]);
   const synthLastPlayed = Object.create(null);
   let audioContext = null;
@@ -168,7 +171,7 @@
   }
 
   function playSfx(name) {
-    if (!settings.sfxEnabled) return null;
+    if (!settings.sfxEnabled || !activeSfx.has(name)) return null;
     if (synthSfx.has(name)) return playSynth(name);
     const sound = safeAudio("sfx", sfxFiles[name] || name, false);
     if (!sound) return null;
