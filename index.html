@@ -409,7 +409,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
   <div class="intro-actions"><button id="introSoundBtn" type="button">🔊 SOUND ON</button><button id="skipIntroBtn" type="button">SKIP INTRO &gt;</button></div>
 </section>
 
-<script src="assets/audio/audio-manager.js?v=1.6"></script>
+<script src="assets/audio/audio-manager.js?v=1.7"></script>
 <script>
 (()=>{
 "use strict";
@@ -1083,6 +1083,8 @@ function useTool(i,key){
   else if(actualType==="tx") AudioManager.playPlacementSound("transmission");
   else if(actualType==="sub") AudioManager.playPlacementSound("substation");
   else if(actualType==="transformer") AudioManager.playPlacementSound("transformer");
+  else if(actualType==="dist") AudioManager.playPlacementSound("distribution");
+  else if(actualType==="service") AudioManager.playPlacementSound("powerLine");
   else AudioManager.playSfx(GRID_TOOL_SFX[actualType]||"lightSwitchOn");
   score+=5;
   renderMap();
