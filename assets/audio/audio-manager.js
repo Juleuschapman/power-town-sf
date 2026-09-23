@@ -9,10 +9,11 @@
   let ambience = null;
   let musicFade = null;
   let ambienceFade = null;
-  const sfxFiles = { wrongAction: "wrong-action.wav", lightSwitchOff: "light_switch_off.wav", lightSwitchOn: "light_switch_on.wav", placeGas: "assets/audio/place-natural-gas.wav", placeSolar: "assets/audio/place-solar.wav", placeWind: "assets/audio/place-wind.wav", placeNuclear: "assets/audio/place-nuclear.wav", placeTransmission: "assets/audio/place-transmission.wav", placeSubstation: "assets/audio/place-substation.wav", placeTransformer: "assets/audio/place-transformer.wav", placeDistribution: "assets/audio/place-distribution.wav", placePowerLine: "assets/audio/place-power-line.wav", demolish: "assets/audio/demolish.wav", wireCut: "assets/audio/wire-cut.wav", cableConnect: "assets/audio/cable-connect.wav", homePowerOn: "assets/audio/home-power-on.wav" };
+  const sfxFiles = { wrongAction: "wrong-action.wav", electricalError: "assets/audio/electrical-error.wav", lightSwitchOff: "light_switch_off.wav", lightSwitchOn: "light_switch_on.wav", placeGas: "assets/audio/place-natural-gas.wav", placeSolar: "assets/audio/place-solar.wav", placeWind: "assets/audio/place-wind.wav", placeNuclear: "assets/audio/place-nuclear.wav", placeTransmission: "assets/audio/place-transmission.wav", placeSubstation: "assets/audio/place-substation.wav", placeTransformer: "assets/audio/place-transformer.wav", placeDistribution: "assets/audio/place-distribution.wav", placePowerLine: "assets/audio/place-power-line.wav", demolish: "assets/audio/demolish.wav", wireCut: "assets/audio/wire-cut.wav", cableConnect: "assets/audio/cable-connect.wav", homePowerOn: "assets/audio/home-power-on.wav", craneLift: "assets/audio/crane-lift.wav", mechanicalRepair: "assets/audio/mechanical-repair.wav", repairComplete: "assets/audio/repair-complete.wav" };
   // File-backed construction and power-transition sounds are opt-in here;
   // other synth/file definitions remain available for later sound-design passes.
-  const activeSfx = new Set(["wrongAction", "lightSwitchOff", "lightSwitchOn", "placeGas", "placeSolar", "placeWind", "placeNuclear", "placeTransmission", "placeSubstation", "placeTransformer", "placeDistribution", "placePowerLine", "demolish", "wireCut", "cableConnect", "homePowerOn"]);
+  // electricalError is deliberately inactive until its approved WAV is supplied.
+  const activeSfx = new Set(["wrongAction", "lightSwitchOff", "lightSwitchOn", "placeGas", "placeSolar", "placeWind", "placeNuclear", "placeTransmission", "placeSubstation", "placeTransformer", "placeDistribution", "placePowerLine", "demolish", "wireCut", "cableConnect", "homePowerOn", "craneLift", "mechanicalRepair", "repairComplete"]);
   const synthSfx = new Set(["repairSuccess", "electricityConnect", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement", "cut", "treeMovement"]);
   const synthLastPlayed = Object.create(null);
   let audioContext = null;
@@ -182,7 +183,7 @@
     return sound;
   }
 
-  const placementVolumes = { placeGas: 1.00, placeSolar: 0.80, placeWind: 0.90, placeNuclear: 0.85, placeTransmission: 0.90, placeSubstation: 0.90, placeTransformer: 0.85, placeDistribution: 0.90, placePowerLine: 0.90, demolish: 0.90, wireCut: 0.90, cableConnect: 0.90, homePowerOn: 0.90 };
+  const placementVolumes = { placeGas: 1.00, placeSolar: 0.80, placeWind: 0.90, placeNuclear: 0.85, placeTransmission: 0.90, placeSubstation: 0.90, placeTransformer: 0.85, placeDistribution: 0.90, placePowerLine: 0.90, demolish: 0.90, wireCut: 0.90, cableConnect: 0.90, homePowerOn: 0.90, craneLift: 0.90, mechanicalRepair: 0.90, repairComplete: 0.95 };
   const placementAudio = Object.create(null);
   let placementAudioUnlocked = false;
   if (root.document) {
