@@ -3,11 +3,12 @@
   "use strict";
 
   const STORAGE_KEY = "powerTownAudioSettings";
-  const defaults = { musicVolume: 0.25, sfxVolume: 0.65, ambienceVolume: 0.35, musicEnabled: true, sfxEnabled: true, ambienceEnabled: true };
+  const defaults = { musicVolume: 0.18, sfxVolume: 0.65, ambienceVolume: 0.35, musicEnabled: true, sfxEnabled: true, ambienceEnabled: true };
   let settings = loadSettings();
   let music = null;
+  const DEFAULT_MUSIC = "assets/audio/blueprint-morning-loop.mp3";
+  let musicTrack = DEFAULT_MUSIC;
   let ambience = null;
-  let musicFade = null;
   let ambienceFade = null;
   const sfxFiles = { wrongAction: "wrong-action.wav", electricalError: "assets/audio/electrical-error.wav", lightSwitchOff: "light_switch_off.wav", lightSwitchOn: "light_switch_on.wav", placeGas: "assets/audio/place-natural-gas.wav", placeSolar: "assets/audio/place-solar.wav", placeWind: "assets/audio/place-wind.wav", placeNuclear: "assets/audio/place-nuclear.wav", placeTransmission: "assets/audio/place-transmission.wav", placeSubstation: "assets/audio/place-substation.wav", placeTransformer: "assets/audio/place-transformer.wav", placeDistribution: "assets/audio/place-distribution.wav", placePowerLine: "assets/audio/place-power-line.wav", demolish: "assets/audio/demolish.wav", wireCut: "assets/audio/wire-cut.wav", cableConnect: "assets/audio/cable-connect.wav", homePowerOn: "assets/audio/home-power-on.wav", craneLift: "assets/audio/crane-lift.wav", mechanicalRepair: "assets/audio/mechanical-repair.wav", repairComplete: "assets/audio/repair-complete.wav" };
   // File-backed construction and power-transition sounds are opt-in here;
@@ -21,7 +22,9 @@
   function loadSettings() {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-      return Object.assign({}, defaults, saved || {});
+      const loaded = Object.assign({}, defaults, saved || {});
+      if (saved && saved.musicVolume === 0.25) loaded.musicVolume = defaults.musicVolume;
+      return loaded;
     } catch (error) {
       return Object.assign({}, defaults);
     }
@@ -56,6 +59,10 @@
     }
   }
 
+  // One persistent music element is shared across the whole game session.
+  music = safeAudio("sfx", DEFAULT_MUSIC, true);
+  if (music) music.volume = settings.musicEnabled ? settings.musicVolume : 0;
+
   function fade(audio, target, duration, done) {
     if (!audio) return;
     const start = Number.isFinite(audio.volume) ? audio.volume : 0;
@@ -69,25 +76,34 @@
   }
 
   function playMusic(name) {
-    if (musicFade) cancelAnimationFrame(musicFade);
-    const next = safeAudio("music", name, true);
-    if (!next) return null;
-    next.volume = 0;
-    const previous = music;
-    music = next;
-    if (previous) fade(previous, 0, 300, () => { previous.pause(); previous.src = ""; });
-    if (settings.musicEnabled) {
-      next.play().catch(() => {});
-      fade(next, settings.musicVolume, 350);
+    if (!music) return null;
+    const nextTrack = name ? filePath("music", name) : DEFAULT_MUSIC;
+    if (nextTrack !== musicTrack) {
+      music.pause();
+      musicTrack = nextTrack;
+      music.src = musicTrack;
+      music.load();
     }
-    return next;
+    music.loop = true;
+    music.preload = "auto";
+    if (settings.musicEnabled) startBackgroundMusic();
+    return music;
   }
 
   function stopMusic() {
-    if (!music) return;
-    const old = music;
-    music = null;
-    fade(old, 0, 300, () => { old.pause(); old.src = ""; });
+    if (music) music.pause();
+  }
+
+  function startBackgroundMusic() {
+    if (!music || !settings.musicEnabled) return null;
+    music.loop = true;
+    music.preload = "auto";
+    music.volume = settings.musicVolume;
+    if (music.paused) {
+      const playback = music.play();
+      if (playback && playback.catch) playback.catch(error => console.warn("Background music could not start:", error));
+    }
+    return music;
   }
 
   function getAudioContext() {
@@ -187,7 +203,7 @@
   const placementAudio = Object.create(null);
   let placementAudioUnlocked = false;
   if (root.document) {
-    const unlockPlacementAudio = () => { placementAudioUnlocked = true; };
+    const unlockPlacementAudio = () => { placementAudioUnlocked = true; startBackgroundMusic(); };
     root.document.addEventListener("pointerdown", unlockPlacementAudio, { once: true, passive: true });
   }
   Object.keys(placementVolumes).forEach(key => {
@@ -273,14 +289,22 @@
     fade(old, 0, 300, () => { old.pause(); old.src = ""; });
   }
 
-  function toggleMusic() { settings.musicEnabled = !settings.musicEnabled; saveSettings(); if (music) settings.musicEnabled ? music.play().catch(() => {}) : music.pause(); return settings.musicEnabled; }
+  function toggleMusic() { settings.musicEnabled = !settings.musicEnabled; saveSettings(); if (music) settings.musicEnabled ? startBackgroundMusic() : music.pause(); return settings.musicEnabled; }
   function toggleSfx() { settings.sfxEnabled = !settings.sfxEnabled; saveSettings(); return settings.sfxEnabled; }
+  function setAudioEnabled(enabled) {
+    settings.musicEnabled = !!enabled;
+    settings.sfxEnabled = !!enabled;
+    saveSettings();
+    if (music) settings.musicEnabled ? startBackgroundMusic() : music.pause();
+    return !!enabled;
+  }
+  function toggleAudio() { return setAudioEnabled(!(settings.musicEnabled && settings.sfxEnabled)); }
   function toggleAmbience() { settings.ambienceEnabled = !settings.ambienceEnabled; saveSettings(); if (ambience) settings.ambienceEnabled ? ambience.play().catch(() => {}) : ambience.pause(); return settings.ambienceEnabled; }
   function setMusicVolume(value) { settings.musicVolume = clamp(value); saveSettings(); if (music) music.volume = settings.musicEnabled ? settings.musicVolume : 0; return settings.musicVolume; }
   function setSfxVolume(value) { settings.sfxVolume = clamp(value); saveSettings(); return settings.sfxVolume; }
   function setAmbienceVolume(value) { settings.ambienceVolume = clamp(value); saveSettings(); if (ambience) ambience.volume = settings.ambienceEnabled ? settings.ambienceVolume : 0; return settings.ambienceVolume; }
 
-  root.AudioManager = { playMusic, stopMusic, playSfx, playPlacementSound, playSynth, playAmbience, stopAmbience, toggleMusic, toggleSfx, toggleAmbience, setMusicVolume, setSfxVolume, setAmbienceVolume, getSettings: () => Object.assign({}, settings) };
+  root.AudioManager = { playMusic, startBackgroundMusic, stopMusic, playSfx, playPlacementSound, playSynth, playAmbience, stopAmbience, toggleMusic, toggleSfx, toggleAudio, setAudioEnabled, toggleAmbience, setMusicVolume, setSfxVolume, setAmbienceVolume, getSettings: () => Object.assign({}, settings) };
   root.playMusic = playMusic; root.stopMusic = stopMusic; root.playSfx = playSfx; root.playAmbience = playAmbience; root.stopAmbience = stopAmbience;
   root.toggleMusic = toggleMusic; root.toggleSfx = toggleSfx; root.toggleAmbience = toggleAmbience;
   root.setMusicVolume = setMusicVolume; root.setSfxVolume = setSfxVolume; root.setAmbienceVolume = setAmbienceVolume;

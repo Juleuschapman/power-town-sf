@@ -196,6 +196,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
       <div id="powerPill" class="pill bad">⚡ <span id="supply">0</span> / <span id="demand">0</span></div>
       <div class="pill">💡 <span id="lit">0</span>/<span id="total">0</span></div>
       <div id="breakerPill" class="pill">🔐 CLOSED</div>
+      <button id="audioToggle" class="action" type="button" aria-pressed="true">🔊 SOUND ON</button>
     </div>
   </header>
 
@@ -409,7 +410,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
   <div class="intro-actions"><button id="introSoundBtn" type="button">🔊 SOUND ON</button><button id="skipIntroBtn" type="button">SKIP INTRO &gt;</button></div>
 </section>
 
-<script src="assets/audio/audio-manager.js?v=2.1"></script>
+<script src="assets/audio/audio-manager.js?v=2.2"></script>
 <script>
 (()=>{
 "use strict";
@@ -1430,11 +1431,14 @@ document.getElementById("playBtn").addEventListener("click",()=>{
   loadLevel(0);
   const start=document.getElementById("startOverlay");start.classList.add("fade-out");setTimeout(()=>start.classList.add("hidden"),350);
 });
-const introOverlay=document.getElementById("introOverlay"),introVideo=document.getElementById("introVideo"),introSoundBtn=document.getElementById("introSoundBtn");
+const introOverlay=document.getElementById("introOverlay"),introVideo=document.getElementById("introVideo"),introSoundBtn=document.getElementById("introSoundBtn"),audioToggle=document.getElementById("audioToggle");
+function syncAudioButtons(){const settings=AudioManager.getSettings(),enabled=settings.musicEnabled&&settings.sfxEnabled;const label=enabled?"🔊 SOUND ON":"🔇 SOUND OFF";audioToggle.textContent=label;audioToggle.setAttribute("aria-pressed",String(enabled));introSoundBtn.textContent=label;introSoundBtn.setAttribute("aria-pressed",String(enabled));introVideo.muted=!enabled}
+audioToggle.addEventListener("click",()=>{AudioManager.toggleAudio();syncAudioButtons()});
 introVideo.src="assets/video/power-town-intro.mp4";
 let introCloseTimer=null,introFallbackTimer=null,introFinished=false;function finishIntro(){if(introFinished)return;introFinished=true;clearTimeout(introCloseTimer);clearTimeout(introFallbackTimer);try{sessionStorage.setItem("powerTownIntroPlayed","true")}catch(e){}introVideo.pause();introVideo.currentTime=0;introOverlay.style.display="none";introOverlay.style.pointerEvents="none";introOverlay.classList.remove("fade-out");document.getElementById("introStartBtn").hidden=true;const start=document.getElementById("startOverlay");if(!developerTestMode){start.classList.remove("hidden","fade-out");start.style.pointerEvents=""}}
-function showIntro(manual=false){clearTimeout(introCloseTimer);clearTimeout(introFallbackTimer);introFinished=false;introOverlay.hidden=false;introOverlay.style.display="flex";introOverlay.style.pointerEvents="";introOverlay.classList.remove("fade-out");document.getElementById("introStartBtn").hidden=true;introVideo.currentTime=0;introVideo.muted=false;introVideo.volume=1;introSoundBtn.textContent="🔊 SOUND ON";if(!manual){try{sessionStorage.setItem("powerTownIntroPlayed","true")}catch(e){}}const play=introVideo.play();if(play&&play.catch)play.catch(()=>{document.getElementById("introStartBtn").hidden=false});if(introVideo.duration&&isFinite(introVideo.duration))introFallbackTimer=setTimeout(finishIntro,(introVideo.duration+1)*1000)}
-introVideo.addEventListener("ended",finishIntro);introVideo.addEventListener("timeupdate",()=>{if(introVideo.duration&&introVideo.currentTime>=introVideo.duration-.15)finishIntro()});introVideo.addEventListener("loadedmetadata",()=>{if(!introOverlay.hidden&&!developerTestMode)introFallbackTimer=setTimeout(finishIntro,(introVideo.duration+1)*1000)});introVideo.addEventListener("error",finishIntro);document.getElementById("introStartBtn").addEventListener("click",()=>{document.getElementById("introStartBtn").hidden=true;introVideo.muted=false;introVideo.volume=1;introVideo.currentTime=0;const play=introVideo.play();if(play&&play.catch)play.catch(()=>{})});document.getElementById("skipIntroBtn").addEventListener("click",finishIntro);introSoundBtn.addEventListener("click",()=>{introVideo.muted=!introVideo.muted;introSoundBtn.textContent=introVideo.muted?"🔇 SOUND OFF":"🔊 SOUND ON";if(!introVideo.muted){introVideo.volume=1;const play=introVideo.play();if(play&&play.catch)play.catch(()=>{})}});document.getElementById("watchIntroBtn").addEventListener("click",()=>showIntro(true));
+function showIntro(manual=false){clearTimeout(introCloseTimer);clearTimeout(introFallbackTimer);introFinished=false;introOverlay.hidden=false;introOverlay.style.display="flex";introOverlay.style.pointerEvents="";introOverlay.classList.remove("fade-out");document.getElementById("introStartBtn").hidden=true;introVideo.currentTime=0;introVideo.volume=1;syncAudioButtons();if(!manual){try{sessionStorage.setItem("powerTownIntroPlayed","true")}catch(e){}}const play=introVideo.play();if(play&&play.catch)play.catch(()=>{document.getElementById("introStartBtn").hidden=false});if(introVideo.duration&&isFinite(introVideo.duration))introFallbackTimer=setTimeout(finishIntro,(introVideo.duration+1)*1000)}
+introVideo.addEventListener("ended",finishIntro);introVideo.addEventListener("timeupdate",()=>{if(introVideo.duration&&introVideo.currentTime>=introVideo.duration-.15)finishIntro()});introVideo.addEventListener("loadedmetadata",()=>{if(!introOverlay.hidden&&!developerTestMode)introFallbackTimer=setTimeout(finishIntro,(introVideo.duration+1)*1000)});introVideo.addEventListener("error",finishIntro);document.getElementById("introStartBtn").addEventListener("click",()=>{document.getElementById("introStartBtn").hidden=true;introVideo.volume=1;introVideo.currentTime=0;syncAudioButtons();const play=introVideo.play();if(play&&play.catch)play.catch(()=>{})});document.getElementById("skipIntroBtn").addEventListener("click",finishIntro);introSoundBtn.addEventListener("click",()=>{const enabled=AudioManager.toggleAudio();introVideo.muted=!enabled;introSoundBtn.textContent=enabled?"🔊 SOUND ON":"🔇 SOUND OFF";audioToggle.textContent=introSoundBtn.textContent;audioToggle.setAttribute("aria-pressed",String(enabled));introSoundBtn.setAttribute("aria-pressed",String(enabled));if(enabled){introVideo.volume=1;const play=introVideo.play();if(play&&play.catch)play.catch(()=>{})}});document.getElementById("watchIntroBtn").addEventListener("click",()=>showIntro(true));
+syncAudioButtons();
 if(!developerTestMode){let introPlayed=false;try{introPlayed=sessionStorage.getItem("powerTownIntroPlayed")==="true"}catch(e){}if(!introPlayed)showIntro();else introOverlay.hidden=true}else introOverlay.hidden=true;
 budgetAudit();
 })();
