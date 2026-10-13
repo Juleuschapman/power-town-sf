@@ -174,7 +174,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .wind-scene #windLineTopHit,.wind-scene #windLineBottomHit{cursor:pointer}.wind-scene #windLine.wind-hover{filter:drop-shadow(0 0 9px #ffe45c)}
-.intro-overlay{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:#000;opacity:1;transition:opacity .9s ease}.intro-overlay.fade-out{opacity:0;pointer-events:none}.intro-overlay video{width:100%;height:100%;object-fit:contain;background:#000}.intro-actions{position:absolute;right:18px;bottom:18px;display:flex;gap:8px}.intro-actions button{border:1px solid #ffffff99;border-radius:9px;padding:8px 12px;background:#102237dd;color:#fff;font-weight:900;cursor:pointer}.intro-actions button:hover{background:#294766}.big-play{display:block;width:100%;min-height:72px;margin:14px 0 6px;font-size:24px}.menu-links{display:flex;gap:10px}.menu-links .watch-intro{flex:1;margin-top:0}.settings-panel{margin-top:6px}.settings-panel.hidden,#menuMain.hidden{display:none!important}.setting-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:10px 0}.setting-toggle{min-width:200px;min-height:44px;border:2px solid #ffffff55;border-radius:12px;background:#168bd1;color:#fff;font-weight:900;cursor:pointer}.setting-toggle[aria-pressed="false"]{background:#4a5563}.setting-label{display:flex;align-items:center;gap:8px;color:#fff;font-weight:800;flex:1;min-width:200px}.setting-label input{flex:1}.watch-intro{margin-top:10px;border:1px solid #ffffff66;border-radius:8px;padding:6px 10px;background:#132a40cc;color:#fff;font-weight:800;cursor:pointer}.watch-intro:hover{background:#294766}
+.intro-overlay{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:#000;opacity:1;transition:opacity .9s ease}.intro-overlay.fade-out{opacity:0;pointer-events:none}.intro-overlay video{width:100%;height:100%;object-fit:contain;background:#000}.intro-actions{position:absolute;right:18px;bottom:18px;display:flex;gap:8px}.intro-actions button{border:1px solid #ffffff99;border-radius:9px;padding:8px 12px;background:#102237dd;color:#fff;font-weight:900;cursor:pointer}.intro-actions button:hover{background:#294766}.big-play{display:block;width:100%;min-height:72px;margin:14px 0 6px;font-size:24px}.menu-links{display:flex;gap:10px}.menu-links .watch-intro{flex:1;margin-top:0}.sound-test{margin:12px 0}.sound-test-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}.sound-test-btn{min-height:40px;border:1px solid #ffffff66;border-radius:10px;background:#132a40cc;color:#fff;font-weight:800;cursor:pointer}.settings-panel{margin-top:6px}.settings-panel.hidden,#menuMain.hidden{display:none!important}.setting-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:10px 0}.setting-toggle{min-width:200px;min-height:44px;border:2px solid #ffffff55;border-radius:12px;background:#168bd1;color:#fff;font-weight:900;cursor:pointer}.setting-toggle[aria-pressed="false"]{background:#4a5563}.setting-label{display:flex;align-items:center;gap:8px;color:#fff;font-weight:800;flex:1;min-width:200px}.setting-label input{flex:1}.watch-intro{margin-top:10px;border:1px solid #ffffff66;border-radius:8px;padding:6px 10px;background:#132a40cc;color:#fff;font-weight:800;cursor:pointer}.watch-intro:hover{background:#294766}
 .intro-start{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border:2px solid #ffe45c;border-radius:14px;padding:14px 22px;background:#102a43ee;color:#fff;font-size:18px;font-weight:1000;cursor:pointer;box-shadow:0 0 24px #ffe45c88}.intro-start:hover{background:#1e4b6b}
 </style>
 </head>
@@ -416,6 +416,19 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
       <div class="setting-row">
         <button id="sfxToggleBtn" class="setting-toggle" type="button" aria-pressed="true">🔊 SOUND EFFECTS ON</button>
         <label class="setting-label">Effects volume <input id="sfxVolume" type="range" min="0" max="100" step="1"></label>
+      </div>
+      <div class="sound-test">
+        <strong>Sound test</strong>
+        <div class="sound-test-grid">
+          <button class="sound-test-btn" data-sfx="emergencySiren">🚨 Siren</button>
+          <button class="sound-test-btn" data-sfx="coldSnap">🥶 Cold snap</button>
+          <button class="sound-test-btn" data-sfx="rainAlert">🌧️ Rain</button>
+          <button class="sound-test-btn" data-sfx="lineSnap">⚡ Line fall</button>
+          <button class="sound-test-btn" data-sfx="towerCrash">🗼 Tower collapse</button>
+          <button class="sound-test-btn" data-sfx="transformerFail">🛢️ Transformer</button>
+          <button class="sound-test-btn" data-sfx="windEmergency">💨 Wind</button>
+          <button class="sound-test-btn" data-sfx="levelComplete">🏆 Victory</button>
+        </div>
       </div>
       <button id="settingsBackBtn" class="watch-intro" type="button">◀ BACK</button>
     </div>
@@ -1518,6 +1531,7 @@ sfxToggleBtn.addEventListener("click",()=>{AudioManager.toggleSfx();syncSettings
 musicVolume.addEventListener("input",()=>AudioManager.setMusicVolume(musicVolume.value/100));
 sfxVolume.addEventListener("input",()=>AudioManager.setSfxVolume(sfxVolume.value/100));
 sfxVolume.addEventListener("change",()=>AudioManager.playSfx("lightSwitchOn"));
+document.querySelectorAll(".sound-test-btn").forEach(b=>b.addEventListener("click",()=>AudioManager.playSfx(b.dataset.sfx)));
 introVideo.src="assets/video/power-town-intro.mp4";
 let introCloseTimer=null,introFallbackTimer=null,introFinished=false;function finishIntro(){if(introFinished)return;introFinished=true;clearTimeout(introCloseTimer);clearTimeout(introFallbackTimer);try{sessionStorage.setItem("powerTownIntroPlayed","true")}catch(e){}introVideo.pause();introVideo.currentTime=0;introOverlay.style.pointerEvents="none";introOverlay.classList.add("fade-out");setTimeout(()=>{if(introFinished)introOverlay.style.display="none"},950);document.getElementById("introStartBtn").hidden=true;const start=document.getElementById("startOverlay");if(!developerTestMode){start.classList.remove("hidden","fade-out");start.style.pointerEvents=""}}
 let introFading=false;
