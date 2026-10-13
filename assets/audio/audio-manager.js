@@ -156,8 +156,8 @@
       tone(587, 0.22, 0.32, "sine", 0.18, 587);
       tone(784, 0.42, 0.48, "triangle", 0.21, 784);
     } else if (name === "coldSnap") {
-      tone(520, 0.45, 0, "sine", 0.14, 240);
-      tone(780, 0.35, 0.12, "triangle", 0.09, 390);
+      tone(600, 0.5, 0, "sawtooth", 0.2, 180);
+      tone(1100, 0.4, 0.1, "triangle", 0.18, 660);
     } else if (name === "rainAlert") {
       tone(1320, 0.08, 0, "sine", 0.12, 1180);
       tone(990, 0.08, 0.1, "sine", 0.11, 880);
