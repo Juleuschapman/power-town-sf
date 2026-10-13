@@ -657,6 +657,17 @@ function computeNetwork(){
   return {powered,onlinePlants,connectedCustomers,servedCustomers,supply,demand,healthy,reliability,hardReliabilityTarget,mixReady};
 }
 
+// Supply the current grid would deliver during rain (solar cut to 40%).
+function rainSupplyEstimate(){
+  computeNetwork();
+  return pieces.reduce((sum,p)=>{
+    if(p?.type!=="plant"||p.broken||!p.online)return sum;
+    let out=p.output||cfg().plantOutput;
+    if(p.plantType==="solar")out*=.4;
+    return sum+Math.round(out);
+  },0);
+}
+
 function shuffle(arr){
   const a=[...arr];
   for(let i=a.length-1;i>0;i--){
@@ -1167,19 +1178,27 @@ function impactCandidates(types){
 
 function chooseEvent(){
   let pool=EVENT_TYPES.filter(t=>!eventHistory.includes(t)&&canPlayerRecoverFromEmergency(t));
-  if(!pool.length){eventHistory=[];pool=EVENT_TYPES.filter(canPlayerRecoverFromEmergency)}
+  if(!pool.length){eventHistory=[];pool=EVENT_TYPES.filter(t=>canPlayerRecoverFromEmergency(t))}
+  // Budget below the reserve used to leave no event to pick, which stalled the level silently.
+  if(!pool.length){pool=EVENT_TYPES.filter(t=>canPlayerRecoverFromEmergency(t,true))}
   if(!pool.length)return null;
   const type=pool[Math.floor(Math.random()*pool.length)];
   eventHistory.push(type);
   return type;
 }
 
-function canPlayerRecoverFromEmergency(type){
+function canPlayerRecoverFromEmergency(type,ignoreReserve=false){
   const reserve=difficulty==="easy"?0:EMERGENCY_RESERVES[difficulty][level];
-  if(budget<reserve)return false;
+  if(!ignoreReserve&&budget<reserve)return false;
   if(type==="cold"){
     const available=Object.values(PLANTS).some(p=>p.cost<=budget&&p.output+computeNetwork().supply>=cfg().coldDemand);
     return available||computeNetwork().supply>=cfg().coldDemand;
+  }
+  if(type==="rain"){
+    // Rain cuts solar output, so the player needs enough non-solar supply or an affordable plant that covers it.
+    const current=rainSupplyEstimate();
+    if(current>=cfg().demand)return true;
+    return Object.entries(PLANTS).some(([key,p])=>p.cost<=budget&&current+rainOutput(key)>=cfg().demand);
   }
   if(type!=="cold"&&!pieces.some(p=>p&&!p.broken))return false;
   return true;
@@ -1366,14 +1385,44 @@ function resetLevel(){
   loadLevel(level);
 }
 
+// Output a plant contributes during a rain event (solar is cut to 40%).
+function rainOutput(key){
+  const p=PLANTS[key];
+  return key==="solar"?Math.round(p.output*.4):p.output;
+}
+
+// Cheapest mix of plant types (up to 4 each) that covers the cold-snap demand
+// and still covers normal demand during rain. Returns null if none exists.
+function cheapestPlantMix(lv){
+  const keys=Object.keys(PLANTS);
+  let best=null;
+  const walk=(idx,cost,out,rainOut,counts)=>{
+    if(idx===keys.length){
+      if(out>=lv.coldDemand&&rainOut>=lv.demand&&(!best||cost<best.cost))best={cost,counts:{...counts}};
+      return;
+    }
+    const key=keys[idx];
+    for(let n=0;n<=4;n++){
+      walk(idx+1,cost+n*PLANTS[key].cost,out+n*PLANTS[key].output,rainOut+n*rainOutput(key),{...counts,[key]:n});
+    }
+  };
+  walk(0,0,0,0,{});
+  return best;
+}
+
 function budgetAudit(){
   ["medium","hard"].forEach(mode=>LEVELS.forEach((lv,i)=>{
     const buildings=lv.buildings.length;
-    const verifiedGridCost=PLANTS.gas.cost+COSTS.tx*3+COSTS.sub+COSTS.dist*2+COSTS.transformer+COSTS.service*buildings;
+    const mix=cheapestPlantMix(lv);
     const reserve=EMERGENCY_RESERVES[mode][i];
     const starting=STARTING_BUDGETS[mode][i];
+    if(!mix){
+      console.log("POWER TOWN BUDGET AUDIT",mode,"Level "+(i+1),{status:"FAIL — no plant mix covers cold-snap and rain demand"});
+      return;
+    }
+    const verifiedGridCost=mix.cost+COSTS.tx*3+COSTS.sub+COSTS.dist*2+COSTS.transformer+COSTS.service*buildings;
     const buffer=starting-verifiedGridCost-reserve;
-    console.log("POWER TOWN BUDGET AUDIT",mode,"Level "+(i+1),{startingBudget:starting,verifiedGridCost,emergencyReserve:reserve,remainingBuffer:buffer,status:buffer>=0?"PASS":"FAIL — LEVEL MAY BE IMPOSSIBLE"});
+    console.log("POWER TOWN BUDGET AUDIT",mode,"Level "+(i+1),{startingBudget:starting,plantMix:mix.counts,verifiedGridCost,emergencyReserve:reserve,remainingBuffer:buffer,status:buffer>=0?"PASS":"FAIL — LEVEL MAY BE IMPOSSIBLE"});
   }));
 }
 
