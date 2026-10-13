@@ -14,7 +14,7 @@
   // File-backed construction and power-transition sounds are opt-in here;
   // other synth/file definitions remain available for later sound-design passes.
   // electricalError is deliberately inactive until its approved WAV is supplied.
-  const activeSfx = new Set(["wrongAction", "lightSwitchOff", "lightSwitchOn", "placeGas", "placeSolar", "placeWind", "placeNuclear", "placeTransmission", "placeSubstation", "placeTransformer", "placeDistribution", "placePowerLine", "demolish", "wireCut", "cableConnect", "homePowerOn", "craneLift", "mechanicalRepair", "repairComplete"]);
+  const activeSfx = new Set(["wrongAction", "lightSwitchOff", "lightSwitchOn", "placeGas", "placeSolar", "placeWind", "placeNuclear", "placeTransmission", "placeSubstation", "placeTransformer", "placeDistribution", "placePowerLine", "demolish", "wireCut", "cableConnect", "homePowerOn", "craneLift", "mechanicalRepair", "repairComplete", "electricityConnect", "repairSuccess", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement"]);
   const synthSfx = new Set(["repairSuccess", "electricityConnect", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement", "cut", "treeMovement"]);
   const synthLastPlayed = Object.create(null);
   let audioContext = null;
