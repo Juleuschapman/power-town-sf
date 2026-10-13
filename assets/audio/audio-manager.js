@@ -14,8 +14,8 @@
   // File-backed construction and power-transition sounds are opt-in here;
   // other synth/file definitions remain available for later sound-design passes.
   // electricalError is deliberately inactive until its approved WAV is supplied.
-  const activeSfx = new Set(["wrongAction", "lightSwitchOff", "lightSwitchOn", "placeGas", "placeSolar", "placeWind", "placeNuclear", "placeTransmission", "placeSubstation", "placeTransformer", "placeDistribution", "placePowerLine", "demolish", "wireCut", "cableConnect", "homePowerOn", "craneLift", "mechanicalRepair", "repairComplete", "electricityConnect", "repairSuccess", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement"]);
-  const synthSfx = new Set(["repairSuccess", "electricityConnect", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement", "cut", "treeMovement"]);
+  const activeSfx = new Set(["wrongAction", "lightSwitchOff", "lightSwitchOn", "placeGas", "placeSolar", "placeWind", "placeNuclear", "placeTransmission", "placeSubstation", "placeTransformer", "placeDistribution", "placePowerLine", "demolish", "wireCut", "cableConnect", "homePowerOn", "craneLift", "mechanicalRepair", "repairComplete", "electricityConnect", "repairSuccess", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement", "electricalError"]);
+  const synthSfx = new Set(["electricalError", "repairSuccess","electricityConnect", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement", "cut", "treeMovement"]);
   const synthLastPlayed = Object.create(null);
   let audioContext = null;
 
@@ -143,6 +143,10 @@
       tone(300, 0.2, 0, "sine", 0.2, 620);
       tone(620, 0.28, 0.12, "sine", 0.18, 980);
       tone(980, 0.32, 0.25, "triangle", 0.16, 1180);
+    } else if (name === "electricalError") {
+      tone(140, 0.12, 0, "sawtooth", 0.2, 70);
+      tone(110, 0.12, 0.09, "sawtooth", 0.18, 55);
+      tone(90, 0.18, 0.18, "square", 0.12, 45);
     } else if (name === "moneyTransaction") {
       tone(620, 0.1, 0, "sine", 0.17, 760);
       tone(920, 0.14, 0.07, "sine", 0.15, 1120);
