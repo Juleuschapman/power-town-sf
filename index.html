@@ -174,7 +174,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .wind-scene #windLineTopHit,.wind-scene #windLineBottomHit{cursor:pointer}.wind-scene #windLine.wind-hover{filter:drop-shadow(0 0 9px #ffe45c)}
-.intro-overlay{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:#000;opacity:1;transition:opacity .45s ease}.intro-overlay.fade-out{opacity:0;pointer-events:none}.intro-overlay video{width:100%;height:100%;object-fit:contain;background:#000}.intro-actions{position:absolute;right:18px;bottom:18px;display:flex;gap:8px}.intro-actions button{border:1px solid #ffffff99;border-radius:9px;padding:8px 12px;background:#102237dd;color:#fff;font-weight:900;cursor:pointer}.intro-actions button:hover{background:#294766}.watch-intro{margin-top:10px;border:1px solid #ffffff66;border-radius:8px;padding:6px 10px;background:#132a40cc;color:#fff;font-weight:800;cursor:pointer}.watch-intro:hover{background:#294766}
+.intro-overlay{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:#000;opacity:1;transition:opacity .9s ease}.intro-overlay.fade-out{opacity:0;pointer-events:none}.intro-overlay video{width:100%;height:100%;object-fit:contain;background:#000}.intro-actions{position:absolute;right:18px;bottom:18px;display:flex;gap:8px}.intro-actions button{border:1px solid #ffffff99;border-radius:9px;padding:8px 12px;background:#102237dd;color:#fff;font-weight:900;cursor:pointer}.intro-actions button:hover{background:#294766}.big-play{display:block;width:100%;min-height:72px;margin:14px 0 6px;font-size:24px}.menu-links{display:flex;gap:10px}.menu-links .watch-intro{flex:1;margin-top:0}.settings-panel{margin-top:6px}.settings-panel.hidden,#menuMain.hidden{display:none!important}.setting-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:10px 0}.setting-toggle{min-width:200px;min-height:44px;border:2px solid #ffffff55;border-radius:12px;background:#168bd1;color:#fff;font-weight:900;cursor:pointer}.setting-toggle[aria-pressed="false"]{background:#4a5563}.setting-label{display:flex;align-items:center;gap:8px;color:#fff;font-weight:800;flex:1;min-width:200px}.setting-label input{flex:1}.watch-intro{margin-top:10px;border:1px solid #ffffff66;border-radius:8px;padding:6px 10px;background:#132a40cc;color:#fff;font-weight:800;cursor:pointer}.watch-intro:hover{background:#294766}
 .intro-start{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border:2px solid #ffe45c;border-radius:14px;padding:14px 22px;background:#102a43ee;color:#fff;font-size:18px;font-weight:1000;cursor:pointer;box-shadow:0 0 24px #ffe45c88}.intro-start:hover{background:#1e4b6b}
 </style>
 </head>
@@ -360,7 +360,7 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
       </div>
       <div class="actions">
         <button id="hintBtn" class="action">🔎 HINT</button>
-        <button id="breakerBtn" class="action">🔐 BREAKER</button>
+        <button id="breakerBtn" class="action hidden">🔐 BREAKER</button>
         <button id="resetBtn" class="action">↻ RESET</button>
       </div>
     </div>
@@ -394,14 +394,31 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
 
 <section id="startOverlay" class="start-overlay" role="dialog" aria-modal="true">
   <div class="start-card">
-    <strong>Choose Difficulty</strong>
-    <div class="difficulty-row">
-      <button class="difficulty-btn" data-difficulty="easy">EASY</button>
-      <button class="difficulty-btn" data-difficulty="medium">MEDIUM</button>
-      <button class="difficulty-btn" data-difficulty="hard">HARD</button>
+    <div id="menuMain">
+      <strong>Choose Difficulty</strong>
+      <div class="difficulty-row">
+        <button class="difficulty-btn" data-difficulty="easy">EASY</button>
+        <button class="difficulty-btn" data-difficulty="medium">MEDIUM</button>
+        <button class="difficulty-btn" data-difficulty="hard">HARD</button>
+      </div>
+      <button id="playBtn" class="play-btn big-play" disabled>▶ PLAY<small>Choose a difficulty first</small></button>
+      <div class="menu-links">
+        <button id="watchIntroBtn" class="watch-intro" type="button">▶ WATCH INTRO</button>
+        <button id="settingsBtn" class="watch-intro" type="button">⚙️ SETTINGS</button>
+      </div>
     </div>
-    <button id="playBtn" class="play-btn" disabled>▶ PLAY<small>Choose a difficulty first</small></button>
-    <button id="watchIntroBtn" class="watch-intro" type="button">▶ WATCH INTRO</button>
+    <div id="settingsPanel" class="settings-panel hidden">
+      <strong>Settings</strong>
+      <div class="setting-row">
+        <button id="musicToggleBtn" class="setting-toggle" type="button" aria-pressed="true">🎵 MUSIC ON</button>
+        <label class="setting-label">Music volume <input id="musicVolume" type="range" min="0" max="100" step="1"></label>
+      </div>
+      <div class="setting-row">
+        <button id="sfxToggleBtn" class="setting-toggle" type="button" aria-pressed="true">🔊 SOUND EFFECTS ON</button>
+        <label class="setting-label">Effects volume <input id="sfxVolume" type="range" min="0" max="100" step="1"></label>
+      </div>
+      <button id="settingsBackBtn" class="watch-intro" type="button">◀ BACK</button>
+    </div>
   </div>
 </section>
 
@@ -475,7 +492,7 @@ const TOOL_INFO={
   repair:{name:"Repair Crew",icon:"🧰",label:"REPAIR",tip:"Fix red damage"},
   erase:{name:"Bulldozer",icon:"🚜",label:"REMOVE",tip:"Remove grid part"}
 };
-const GRID_TOOL_SFX={plant:"powerRestored",tx:"towerPlacement",sub:"electricityConnect",dist:"electricityConnect",transformer:"transformerPower",service:"electricityConnect",repair:"repairSuccess",erase:"treeMovement"};
+const GRID_TOOL_SFX={plant:"craneLift",tx:"towerPlacement",sub:"electricityConnect",dist:"electricityConnect",transformer:"transformerPower",service:"electricityConnect",repair:"mechanicalRepair",erase:"treeMovement"};
 const PLANTS={
   solar:{name:"SOLAR FARM",icon:"☀️",output:90,cost:150,strength:"Cheap",weakness:"Weak in heavy rain"},
   wind:{name:"WIND FARM",icon:"💨",output:110,cost:180,strength:"Inexpensive generation",weakness:"Can be damaged by high winds"},
@@ -948,7 +965,7 @@ function shortMistake(message,electrical=false){AudioManager.playSfx(electrical?
 function shortStatus(message){$("#shortRepairStatus").textContent=message;$("#shortBoard").classList.add("wrong");setTimeout(()=>$("#shortBoard").classList.remove("wrong"),250)}
 function updateShortUi(){if(!shortGame)return;const ids=["shortInspectBtn","shortIsolateBtn","shortRepairBtn","shortResetBtn","shortTestBtn"];ids.forEach((id,i)=>{const b=$("#"+id);b.classList.remove("tower-available","tower-selected","tower-completed","tower-locked");const ok=i===shortGame.step-1;b.disabled=!ok;if(i<shortGame.step-1)b.classList.add("tower-completed");else if(ok)b.classList.add(shortGame.tested?"tower-completed":"tower-selected");else b.classList.add("tower-locked")})}
 function openShortRepairMinigame(component){shortGame={component,found:false,isolated:false,repaired:false,breaker:false,tested:false,tool:null,step:1,attempts:0,testMode:component===-1};$("#shortRepairOverlay").classList.remove("hidden");$("#shortFaultLine").style.opacity="0";$("#shortFaultGlow").style.opacity="0";$("#shortBreakerState").textContent="OPEN";$("#shortBreakerState").classList.remove("closed");["shortMain","branchA","branchB","branchC"].forEach(id=>$("#"+id).classList.remove("short-target","short-done","fault"));shortStatus("Select INSPECT, then check the branches.");updateShortUi()}
-function completeShortRepair(){if(!shortGame)return;playRepairCompleteOnce(shortGame);const i=shortGame.component;const rating=shortGame.attempts===0?3:shortGame.attempts<=2?2:1;const bonus=rating===3?150:rating===2?100:50;if(pieces[i]&&!shortGame.testMode){pieces[i].broken=false;pieces[i].fault=false;busyCrews=Math.max(0,busyCrews-1);score+=bonus}shortStatus("⚡ CIRCUIT RESTORED");say((rating===3?"⭐⭐⭐ PERFECT REPAIR":rating===2?"⭐⭐ GOOD REPAIR":"⭐ REPAIR COMPLETE")+" <strong>The circuit is safe again.</strong>","🧰");setTimeout(()=>{$("#shortRepairOverlay").classList.add("hidden");shortGame=null;renderMap();autoCheck()},1800)}
+function completeShortRepair(){if(!shortGame)return;playRepairCompleteOnce(shortGame);const i=shortGame.component;const rating=shortGame.attempts===0?3:shortGame.attempts<=2?2:1;const bonus=rating===3?150:rating===2?100:50;if(pieces[i]&&!shortGame.testMode){pieces[i].broken=false;pieces[i].fault=false;busyCrews=Math.max(0,busyCrews-1);score+=bonus}shortStatus("⚡ CIRCUIT RESTORED");say((rating===3?"⭐⭐⭐ PERFECT REPAIR":rating===2?"⭐⭐ GOOD REPAIR":"⭐ REPAIR COMPLETE")+" <strong>The circuit is safe again.</strong>","🧰");setTimeout(()=>{$("#shortRepairOverlay").classList.add("hidden");shortGame=null;if(breakerOpen&&!pieces.some(p=>p?.broken&&p.fault)){breakerOpen=false;AudioManager.playSfx("lightSwitchOn");say("🔐 Breaker closed automatically. Electricity can flow again.")}renderMap();autoCheck()},1800)}
 $("#shortInspectBtn").addEventListener("click",()=>{if(!shortGame)return;shortGame.tool="inspect";["shortBranchAHit","shortBranchBHit","shortBranchCHit"].forEach(id=>$("#"+id).classList.add("short-target"));shortStatus("Click a branch to inspect it.");updateShortUi()});
 function inspectShortBranch(branch){if(!shortGame||shortGame.tool!=="inspect")return;if(branch==="B"){shortGame.found=true;AudioManager.playSfx("repairSuccess");shortGame.step=2;shortGame.tool=null;$("#branchB").classList.add("short-target","fault");shortStatus("Fault detected on this branch.");updateShortUi()}else{shortGame.attempts++;$("#branch"+branch).classList.add("short-done");shortStatus("This branch looks normal. Try another branch.")}}
 $("#shortBranchAHit").addEventListener("click",()=>inspectShortBranch("A"));$("#shortBranchBHit").addEventListener("click",()=>inspectShortBranch("B"));$("#shortBranchCHit").addEventListener("click",()=>inspectShortBranch("C"));
@@ -1131,6 +1148,13 @@ function autoCheck(){
     if(budget>=reserve){reserveWaiting=false;wasHealthy=true;say("✅ <strong>Emergency reserve ready.</strong> Incoming event…","😮");startEmergency();}
   }else if(!n.healthy){
     wasHealthy=false;
+    // All buildings lit and power is sufficient, but reliability (or the plant mix) is not
+    // there yet. No emergency will start, so the level is won here.
+    const allLit=n.connectedCustomers.length===cfg().buildings.length&&n.supply>=n.demand&&!breakerOpen;
+    if(allLit&&n.mixReady&&!currentEvent&&!pendingEvent){
+      finishLevel();
+      return;
+    }
     if(n.connectedCustomers.length===cfg().buildings.length&&n.supply>=n.demand&&n.hardReliabilityTarget&&n.reliability<n.hardReliabilityTarget){
       say("🔁 <strong>Grid works, but reliability is too low.</strong> Add backup power-line routes until reliability reaches <strong>"+n.hardReliabilityTarget+"%</strong>.","🔁");
     }else if(n.connectedCustomers.length===cfg().buildings.length&&n.supply>=n.demand&&!n.mixReady){
@@ -1483,10 +1507,22 @@ document.getElementById("playBtn").addEventListener("click",()=>{
 const introOverlay=document.getElementById("introOverlay"),introVideo=document.getElementById("introVideo"),introSoundBtn=document.getElementById("introSoundBtn"),audioToggle=document.getElementById("audioToggle");
 function syncAudioButtons(){const settings=AudioManager.getSettings(),enabled=settings.musicEnabled&&settings.sfxEnabled;const label=enabled?"🔊 SOUND ON":"🔇 SOUND OFF";audioToggle.textContent=label;audioToggle.setAttribute("aria-pressed",String(enabled));introSoundBtn.textContent=label;introSoundBtn.setAttribute("aria-pressed",String(enabled));introVideo.muted=!enabled}
 audioToggle.addEventListener("click",()=>{AudioManager.toggleAudio();syncAudioButtons()});
+const settingsBtn=document.getElementById("settingsBtn"),settingsBackBtn=document.getElementById("settingsBackBtn"),settingsPanel=document.getElementById("settingsPanel"),menuMain=document.getElementById("menuMain"),musicToggleBtn=document.getElementById("musicToggleBtn"),sfxToggleBtn=document.getElementById("sfxToggleBtn"),musicVolume=document.getElementById("musicVolume"),sfxVolume=document.getElementById("sfxVolume");
+function syncSettingsPanel(){const s=AudioManager.getSettings();musicToggleBtn.textContent=s.musicEnabled?"🎵 MUSIC ON":"🎵 MUSIC OFF";musicToggleBtn.setAttribute("aria-pressed",String(s.musicEnabled));sfxToggleBtn.textContent=s.sfxEnabled?"🔊 SOUND EFFECTS ON":"🔇 SOUND EFFECTS OFF";sfxToggleBtn.setAttribute("aria-pressed",String(s.sfxEnabled));musicVolume.value=Math.round(s.musicVolume*100);sfxVolume.value=Math.round(s.sfxVolume*100)}
+settingsBtn.addEventListener("click",()=>{menuMain.classList.add("hidden");settingsPanel.classList.remove("hidden");syncSettingsPanel()});
+settingsBackBtn.addEventListener("click",()=>{settingsPanel.classList.add("hidden");menuMain.classList.remove("hidden");syncAudioButtons()});
+musicToggleBtn.addEventListener("click",()=>{AudioManager.toggleMusic();syncSettingsPanel();syncAudioButtons()});
+sfxToggleBtn.addEventListener("click",()=>{AudioManager.toggleSfx();syncSettingsPanel();syncAudioButtons()});
+musicVolume.addEventListener("input",()=>AudioManager.setMusicVolume(musicVolume.value/100));
+sfxVolume.addEventListener("input",()=>AudioManager.setSfxVolume(sfxVolume.value/100));
+sfxVolume.addEventListener("change",()=>AudioManager.playSfx("lightSwitchOn"));
 introVideo.src="assets/video/power-town-intro.mp4";
-let introCloseTimer=null,introFallbackTimer=null,introFinished=false;function finishIntro(){if(introFinished)return;introFinished=true;clearTimeout(introCloseTimer);clearTimeout(introFallbackTimer);try{sessionStorage.setItem("powerTownIntroPlayed","true")}catch(e){}introVideo.pause();introVideo.currentTime=0;introOverlay.style.display="none";introOverlay.style.pointerEvents="none";introOverlay.classList.remove("fade-out");document.getElementById("introStartBtn").hidden=true;const start=document.getElementById("startOverlay");if(!developerTestMode){start.classList.remove("hidden","fade-out");start.style.pointerEvents=""}}
-function showIntro(manual=false){clearTimeout(introCloseTimer);clearTimeout(introFallbackTimer);introFinished=false;introOverlay.hidden=false;introOverlay.style.display="flex";introOverlay.style.pointerEvents="";introOverlay.classList.remove("fade-out");document.getElementById("introStartBtn").hidden=true;introVideo.currentTime=0;introVideo.volume=1;syncAudioButtons();if(!manual){try{sessionStorage.setItem("powerTownIntroPlayed","true")}catch(e){}}const play=introVideo.play();if(play&&play.catch)play.catch(()=>{document.getElementById("introStartBtn").hidden=false});if(introVideo.duration&&isFinite(introVideo.duration))introFallbackTimer=setTimeout(finishIntro,(introVideo.duration+1)*1000)}
-introVideo.addEventListener("ended",finishIntro);introVideo.addEventListener("timeupdate",()=>{if(introVideo.duration&&introVideo.currentTime>=introVideo.duration-.15)finishIntro()});introVideo.addEventListener("loadedmetadata",()=>{if(!introOverlay.hidden&&!developerTestMode)introFallbackTimer=setTimeout(finishIntro,(introVideo.duration+1)*1000)});introVideo.addEventListener("error",finishIntro);document.getElementById("introStartBtn").addEventListener("click",()=>{document.getElementById("introStartBtn").hidden=true;introVideo.volume=1;introVideo.currentTime=0;syncAudioButtons();const play=introVideo.play();if(play&&play.catch)play.catch(()=>{})});document.getElementById("skipIntroBtn").addEventListener("click",finishIntro);introSoundBtn.addEventListener("click",()=>{const enabled=AudioManager.toggleAudio();introVideo.muted=!enabled;introSoundBtn.textContent=enabled?"🔊 SOUND ON":"🔇 SOUND OFF";audioToggle.textContent=introSoundBtn.textContent;audioToggle.setAttribute("aria-pressed",String(enabled));introSoundBtn.setAttribute("aria-pressed",String(enabled));if(enabled){introVideo.volume=1;const play=introVideo.play();if(play&&play.catch)play.catch(()=>{})}});document.getElementById("watchIntroBtn").addEventListener("click",()=>showIntro(true));
+let introCloseTimer=null,introFallbackTimer=null,introFinished=false;function finishIntro(){if(introFinished)return;introFinished=true;clearTimeout(introCloseTimer);clearTimeout(introFallbackTimer);try{sessionStorage.setItem("powerTownIntroPlayed","true")}catch(e){}introVideo.pause();introVideo.currentTime=0;introOverlay.style.pointerEvents="none";introOverlay.classList.add("fade-out");setTimeout(()=>{if(introFinished)introOverlay.style.display="none"},950);document.getElementById("introStartBtn").hidden=true;const start=document.getElementById("startOverlay");if(!developerTestMode){start.classList.remove("hidden","fade-out");start.style.pointerEvents=""}}
+let introFading=false;
+// Starts the crossfade about a second before the video ends, so the menu is already showing when the narration finishes.
+function beginIntroFade(){if(introFading||introFinished)return;introFading=true;const start=document.getElementById("startOverlay");if(!developerTestMode){start.classList.remove("hidden","fade-out");start.style.transition="opacity 1.2s ease";start.style.opacity="0";start.style.pointerEvents="";requestAnimationFrame(()=>requestAnimationFrame(()=>{start.style.opacity="1"}))}introOverlay.style.transition="opacity 1.2s ease";introOverlay.style.background="transparent";introOverlay.style.pointerEvents="none";introOverlay.classList.add("fade-out");setTimeout(()=>{if(!introFading||!introOverlay.classList.contains("fade-out"))return;introOverlay.style.display="none";introOverlay.style.transition="";introOverlay.style.background="";start.style.transition="";start.style.opacity=""},1300)}
+function showIntro(manual=false){introFading=false;introOverlay.style.background="";introOverlay.style.transition="";clearTimeout(introCloseTimer);clearTimeout(introFallbackTimer);introFinished=false;introOverlay.hidden=false;introOverlay.style.display="flex";introOverlay.style.pointerEvents="";introOverlay.classList.remove("fade-out");document.getElementById("introStartBtn").hidden=true;introVideo.currentTime=0;introVideo.volume=1;syncAudioButtons();if(!manual){try{sessionStorage.setItem("powerTownIntroPlayed","true")}catch(e){}}const play=introVideo.play();if(play&&play.catch)play.catch(()=>{document.getElementById("introStartBtn").hidden=false});if(introVideo.duration&&isFinite(introVideo.duration))introFallbackTimer=setTimeout(finishIntro,(introVideo.duration+1)*1000)}
+introVideo.addEventListener("ended",finishIntro);introVideo.addEventListener("timeupdate",()=>{if(introVideo.currentTime>=8-.1)beginIntroFade()});introVideo.addEventListener("loadedmetadata",()=>{if(!introOverlay.hidden&&!developerTestMode)introFallbackTimer=setTimeout(finishIntro,(introVideo.duration+1)*1000)});introVideo.addEventListener("error",finishIntro);document.getElementById("introStartBtn").addEventListener("click",()=>{document.getElementById("introStartBtn").hidden=true;introVideo.volume=1;introVideo.currentTime=0;syncAudioButtons();const play=introVideo.play();if(play&&play.catch)play.catch(()=>{})});document.getElementById("skipIntroBtn").addEventListener("click",finishIntro);introSoundBtn.addEventListener("click",()=>{const enabled=AudioManager.toggleAudio();introVideo.muted=!enabled;introSoundBtn.textContent=enabled?"🔊 SOUND ON":"🔇 SOUND OFF";audioToggle.textContent=introSoundBtn.textContent;audioToggle.setAttribute("aria-pressed",String(enabled));introSoundBtn.setAttribute("aria-pressed",String(enabled));if(enabled){introVideo.volume=1;const play=introVideo.play();if(play&&play.catch)play.catch(()=>{})}});document.getElementById("watchIntroBtn").addEventListener("click",()=>showIntro(true));
 syncAudioButtons();
 if(!developerTestMode){let introPlayed=false;try{introPlayed=sessionStorage.getItem("powerTownIntroPlayed")==="true"}catch(e){}if(!introPlayed)showIntro();else introOverlay.hidden=true}else introOverlay.hidden=true;
 budgetAudit();
