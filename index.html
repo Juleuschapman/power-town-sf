@@ -504,6 +504,7 @@ const STARTING_BUDGETS={medium:[900,1150,1450,1900,2400],hard:[1000,1300,1650,15
 const EMERGENCY_RESERVES={medium:[0,150,175,225,275],hard:[0,200,250,325,400]};
 const SHUFFLED_TOOLS=["plant","tx","sub","dist","transformer","service","repair"];
 const EVENT_TYPES=["cold","wind","rain","linefall","towerfall","transformer"];
+const EMERGENCY_SFX={cold:"coldSnap",wind:"windEmergency",rain:"rainAlert",linefall:"lineSnap",towerfall:"towerCrash",transformer:"transformerFail"};
 
 let level=0;
 const savedProgress=loadProgress();
@@ -1258,7 +1259,7 @@ function startEmergency(){
   }
 
   renderMap(); // HUD changes BEFORE overlay
-  AudioManager.playSfx(type==="wind"?"windEmergency":"emergencyAlert");
+  AudioManager.playSfx(EMERGENCY_SFX[type]||"emergencyAlert");
   showEmergencyOverlay(type);
 }
 

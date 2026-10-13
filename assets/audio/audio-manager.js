@@ -14,8 +14,8 @@
   // File-backed construction and power-transition sounds are opt-in here;
   // other synth/file definitions remain available for later sound-design passes.
   // electricalError is deliberately inactive until its approved WAV is supplied.
-  const activeSfx = new Set(["wrongAction", "lightSwitchOff", "lightSwitchOn", "placeGas", "placeSolar", "placeWind", "placeNuclear", "placeTransmission", "placeSubstation", "placeTransformer", "placeDistribution", "placePowerLine", "demolish", "wireCut", "cableConnect", "homePowerOn", "craneLift", "mechanicalRepair", "repairComplete", "electricityConnect", "repairSuccess", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement", "electricalError"]);
-  const synthSfx = new Set(["electricalError", "repairSuccess","electricityConnect", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement", "cut", "treeMovement"]);
+  const activeSfx = new Set(["wrongAction", "lightSwitchOff", "lightSwitchOn", "placeGas", "placeSolar", "placeWind", "placeNuclear", "placeTransmission", "placeSubstation", "placeTransformer", "placeDistribution", "placePowerLine", "demolish", "wireCut", "cableConnect", "homePowerOn", "craneLift", "mechanicalRepair", "repairComplete", "electricityConnect", "repairSuccess", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement", "electricalError", "coldSnap", "rainAlert", "lineSnap", "towerCrash", "transformerFail", "emergencyAlert", "windEmergency"]);
+  const synthSfx = new Set(["coldSnap", "rainAlert", "lineSnap", "towerCrash", "transformerFail", "electricalError", "repairSuccess","electricityConnect", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement", "cut", "treeMovement"]);
   const synthLastPlayed = Object.create(null);
   let audioContext = null;
 
@@ -155,6 +155,22 @@
       tone(494, 0.22, 0.16, "sine", 0.18, 494);
       tone(587, 0.22, 0.32, "sine", 0.18, 587);
       tone(784, 0.42, 0.48, "triangle", 0.21, 784);
+    } else if (name === "coldSnap") {
+      tone(520, 0.45, 0, "sine", 0.14, 240);
+      tone(780, 0.35, 0.12, "triangle", 0.09, 390);
+    } else if (name === "rainAlert") {
+      tone(1320, 0.08, 0, "sine", 0.12, 1180);
+      tone(990, 0.08, 0.1, "sine", 0.11, 880);
+      tone(1180, 0.08, 0.2, "sine", 0.1, 1040);
+    } else if (name === "lineSnap") {
+      tone(900, 0.14, 0, "square", 0.16, 120);
+      tone(150, 0.3, 0.06, "triangle", 0.2, 60);
+    } else if (name === "towerCrash") {
+      tone(90, 0.7, 0, "sawtooth", 0.22, 35);
+      tone(260, 0.12, 0, "square", 0.14, 90);
+    } else if (name === "transformerFail") {
+      tone(1200, 0.2, 0, "square", 0.1, 500);
+      tone(90, 0.35, 0.05, "sawtooth", 0.2, 70);
     } else if (name === "emergencyAlert") {
       tone(560, 0.18, 0, "square", 0.12, 470);
       tone(560, 0.18, 0.22, "square", 0.12, 470);
