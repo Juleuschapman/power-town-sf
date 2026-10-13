@@ -156,9 +156,26 @@
       tone(587, 0.22, 0.32, "sine", 0.18, 587);
       tone(784, 0.42, 0.48, "triangle", 0.21, 784);
     } else if (name === "emergencySiren") {
-      tone(600, 0.5, 0, "sawtooth", 0.22, 1000);
-      tone(1000, 0.5, 0.5, "sawtooth", 0.22, 600);
-      tone(600, 0.5, 1.0, "sawtooth", 0.22, 1000);
+      // One sustained wail: a warm triangle wave that rises and falls between two pitches.
+      const osc = context.createOscillator();
+      const wail = context.createGain();
+      const total = 2.4;
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(650, start);
+      let when = start;
+      let pitch = 650;
+      for (let i = 0; i < 8; i++) {
+        when += total / 8;
+        pitch = pitch === 650 ? 1000 : 650;
+        osc.frequency.linearRampToValueAtTime(pitch, when);
+      }
+      wail.gain.setValueAtTime(0.0001, start);
+      wail.gain.exponentialRampToValueAtTime(0.25, start + 0.08);
+      wail.gain.setValueAtTime(0.25, start + total - 0.25);
+      wail.gain.exponentialRampToValueAtTime(0.0001, start + total);
+      osc.connect(wail).connect(output);
+      osc.start(start);
+      osc.stop(start + total + 0.05);
     } else if (name === "coldSnap") {
       tone(600, 0.5, 0, "sawtooth", 0.2, 180);
       tone(1100, 0.4, 0.1, "triangle", 0.18, 660);
