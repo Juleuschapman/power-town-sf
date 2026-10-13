@@ -1131,6 +1131,13 @@ function autoCheck(){
     if(budget>=reserve){reserveWaiting=false;wasHealthy=true;say("✅ <strong>Emergency reserve ready.</strong> Incoming event…","😮");startEmergency();}
   }else if(!n.healthy){
     wasHealthy=false;
+    // All buildings lit and power is sufficient, but reliability (or the plant mix) is not
+    // there yet. No emergency will start, so the level is won here.
+    const allLit=n.connectedCustomers.length===cfg().buildings.length&&n.supply>=n.demand&&!breakerOpen;
+    if(allLit&&n.mixReady&&!currentEvent&&!pendingEvent){
+      finishLevel();
+      return;
+    }
     if(n.connectedCustomers.length===cfg().buildings.length&&n.supply>=n.demand&&n.hardReliabilityTarget&&n.reliability<n.hardReliabilityTarget){
       say("🔁 <strong>Grid works, but reliability is too low.</strong> Add backup power-line routes until reliability reaches <strong>"+n.hardReliabilityTarget+"%</strong>.","🔁");
     }else if(n.connectedCustomers.length===cfg().buildings.length&&n.supply>=n.demand&&!n.mixReady){
