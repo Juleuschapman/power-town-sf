@@ -1167,16 +1167,18 @@ function impactCandidates(types){
 
 function chooseEvent(){
   let pool=EVENT_TYPES.filter(t=>!eventHistory.includes(t)&&canPlayerRecoverFromEmergency(t));
-  if(!pool.length){eventHistory=[];pool=EVENT_TYPES.filter(canPlayerRecoverFromEmergency)}
+  if(!pool.length){eventHistory=[];pool=EVENT_TYPES.filter(t=>canPlayerRecoverFromEmergency(t))}
+  // Budget below the reserve used to leave no event to pick, which stalled the level silently.
+  if(!pool.length){pool=EVENT_TYPES.filter(t=>canPlayerRecoverFromEmergency(t,true))}
   if(!pool.length)return null;
   const type=pool[Math.floor(Math.random()*pool.length)];
   eventHistory.push(type);
   return type;
 }
 
-function canPlayerRecoverFromEmergency(type){
+function canPlayerRecoverFromEmergency(type,ignoreReserve=false){
   const reserve=difficulty==="easy"?0:EMERGENCY_RESERVES[difficulty][level];
-  if(budget<reserve)return false;
+  if(!ignoreReserve&&budget<reserve)return false;
   if(type==="cold"){
     const available=Object.values(PLANTS).some(p=>p.cost<=budget&&p.output+computeNetwork().supply>=cfg().coldDemand);
     return available||computeNetwork().supply>=cfg().coldDemand;
