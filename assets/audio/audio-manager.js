@@ -14,8 +14,8 @@
   // File-backed construction and power-transition sounds are opt-in here;
   // other synth/file definitions remain available for later sound-design passes.
   // electricalError is deliberately inactive until its approved WAV is supplied.
-  const activeSfx = new Set(["wrongAction", "lightSwitchOff", "lightSwitchOn", "placeGas", "placeSolar", "placeWind", "placeNuclear", "placeTransmission", "placeSubstation", "placeTransformer", "placeDistribution", "placePowerLine", "demolish", "wireCut", "cableConnect", "homePowerOn", "craneLift", "mechanicalRepair", "repairComplete", "electricityConnect", "repairSuccess", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement", "electricalError", "coldSnap", "rainAlert", "lineSnap", "towerCrash", "transformerFail", "emergencyAlert", "windEmergency"]);
-  const synthSfx = new Set(["coldSnap", "rainAlert", "lineSnap", "towerCrash", "transformerFail", "electricalError", "repairSuccess","electricityConnect", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement", "cut", "treeMovement"]);
+  const activeSfx = new Set(["wrongAction", "lightSwitchOff", "lightSwitchOn", "placeGas", "placeSolar", "placeWind", "placeNuclear", "placeTransmission", "placeSubstation", "placeTransformer", "placeDistribution", "placePowerLine", "demolish", "wireCut", "cableConnect", "homePowerOn", "craneLift", "mechanicalRepair", "repairComplete", "electricityConnect", "repairSuccess", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement", "electricalError", "coldSnap", "rainAlert", "lineSnap", "towerCrash", "transformerFail", "emergencyAlert", "windEmergency", "emergencySiren"]);
+  const synthSfx = new Set(["emergencySiren", "coldSnap", "rainAlert", "lineSnap", "towerCrash", "transformerFail", "electricalError", "repairSuccess","electricityConnect", "powerRestored", "moneyTransaction", "levelComplete", "emergencyAlert", "windEmergency", "transformerPower", "towerPlacement", "cut", "treeMovement"]);
   const synthLastPlayed = Object.create(null);
   let audioContext = null;
 
@@ -155,6 +155,10 @@
       tone(494, 0.22, 0.16, "sine", 0.18, 494);
       tone(587, 0.22, 0.32, "sine", 0.18, 587);
       tone(784, 0.42, 0.48, "triangle", 0.21, 784);
+    } else if (name === "emergencySiren") {
+      tone(600, 0.5, 0, "sawtooth", 0.22, 1000);
+      tone(1000, 0.5, 0.5, "sawtooth", 0.22, 600);
+      tone(600, 0.5, 1.0, "sawtooth", 0.22, 1000);
     } else if (name === "coldSnap") {
       tone(600, 0.5, 0, "sawtooth", 0.2, 180);
       tone(1100, 0.4, 0.1, "triangle", 0.18, 660);

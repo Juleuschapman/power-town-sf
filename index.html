@@ -1259,7 +1259,8 @@ function startEmergency(){
   }
 
   renderMap(); // HUD changes BEFORE overlay
-  AudioManager.playSfx(EMERGENCY_SFX[type]||"emergencyAlert");
+  AudioManager.playSfx("emergencySiren");
+  setTimeout(()=>AudioManager.playSfx(EMERGENCY_SFX[type]||"emergencyAlert"),1600);
   showEmergencyOverlay(type);
 }
 
