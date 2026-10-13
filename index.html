@@ -383,6 +383,26 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
   <button data-test-repair="transformer">TEST TRANSFORMER FAILURE</button>
   <button data-test-repair="short">TEST SHORT CIRCUIT</button>
   <button data-test-repair="tree">TEST TREE / WIND DAMAGE</button>
+  <h3>EMERGENCY TESTS</h3>
+  <button data-test-emergency="cold">COLD SNAP</button>
+  <button data-test-emergency="wind">WIND</button>
+  <button data-test-emergency="rain">RAIN</button>
+  <button data-test-emergency="linefall">LINE FALL</button>
+  <button data-test-emergency="towerfall">TOWER COLLAPSE</button>
+  <button data-test-emergency="transformer">TRANSFORMER</button>
+  <h3>VICTORY TEST</h3>
+  <button id="testVictory" class="dev-secondary">PLAY VICTORY SCREEN</button>
+  <h3>SOUND TEST</h3>
+  <div class="sound-test-grid">
+    <button class="sound-test-btn" data-sfx="emergencySiren">Siren</button>
+    <button class="sound-test-btn" data-sfx="coldSnap">Cold snap</button>
+    <button class="sound-test-btn" data-sfx="rainAlert">Rain</button>
+    <button class="sound-test-btn" data-sfx="lineSnap">Line fall</button>
+    <button class="sound-test-btn" data-sfx="towerCrash">Tower collapse</button>
+    <button class="sound-test-btn" data-sfx="transformerFail">Transformer</button>
+    <button class="sound-test-btn" data-sfx="windEmergency">Wind</button>
+    <button class="sound-test-btn" data-sfx="levelComplete">Victory</button>
+  </div>
   <h3>AUDIO TEST</h3>
   <button id="testPowerOffSound" class="dev-secondary">TEST POWER OFF SOUND</button>
   <button id="testPowerOnSound" class="dev-secondary">TEST POWER ON SOUND</button>
@@ -416,19 +436,6 @@ button:focus-visible{outline:4px solid #fff;outline-offset:2px}
       <div class="setting-row">
         <button id="sfxToggleBtn" class="setting-toggle" type="button" aria-pressed="true">🔊 SOUND EFFECTS ON</button>
         <label class="setting-label">Effects volume <input id="sfxVolume" type="range" min="0" max="100" step="1"></label>
-      </div>
-      <div class="sound-test">
-        <strong>Sound test</strong>
-        <div class="sound-test-grid">
-          <button class="sound-test-btn" data-sfx="emergencySiren">🚨 Siren</button>
-          <button class="sound-test-btn" data-sfx="coldSnap">🥶 Cold snap</button>
-          <button class="sound-test-btn" data-sfx="rainAlert">🌧️ Rain</button>
-          <button class="sound-test-btn" data-sfx="lineSnap">⚡ Line fall</button>
-          <button class="sound-test-btn" data-sfx="towerCrash">🗼 Tower collapse</button>
-          <button class="sound-test-btn" data-sfx="transformerFail">🛢️ Transformer</button>
-          <button class="sound-test-btn" data-sfx="windEmergency">💨 Wind</button>
-          <button class="sound-test-btn" data-sfx="levelComplete">🏆 Victory</button>
-        </div>
       </div>
       <button id="settingsBackBtn" class="watch-intro" type="button">◀ BACK</button>
     </div>
@@ -1008,9 +1015,11 @@ $("#windRepairBtn").addEventListener("click",()=>{if(!windGame||!windGame.inspec
 windLineHitIds.forEach((id,i)=>$("#"+id).addEventListener("click",()=>{if(windGame?.tool!=="repair"||windGame.damage!=="line")return;windGame.repaired=true;AudioManager.playSfx("repairSuccess");windGame.step=5;windGame.tool=null;windGame.activeTool=null;const lineId=windGame.lineFound|| (i===0?"windLineTop":"windLineBottom");$("#"+lineId).classList.remove("wind-wire-damage");$("#"+lineId).classList.add("wind-wire-repaired");windStatus("Line repaired. Turn the power back on.");updateWindUi()}));$("#windPoleHit").addEventListener("click",()=>{if(windGame?.tool!=="repair"||windGame.damage!=="pole")return;windGame.repaired=true;AudioManager.playSfx("mechanicalRepair");windGame.step=5;windGame.tool=null;windGame.activeTool=null;$("#windCrossarm").classList.remove("wind-damage");windStatus("Support repaired. Turn the power back on.");updateWindUi()});$("#windConnectionHit").addEventListener("click",()=>{if(windGame?.tool!=="repair"||windGame.damage!=="connection")return;windGame.repaired=true;AudioManager.playSfx("cableConnect");AudioManager.playSfx("repairSuccess");windGame.step=5;windGame.tool=null;windGame.activeTool=null;$("#windConnectionHit").classList.remove("wind-damage");windStatus("Connection repaired. Turn the power back on.");updateWindUi()});
 $("#windTestBtn").addEventListener("click",()=>{if(!windGame||!windGame.powerOn)return;windGame.activeTool="test";AudioManager.playSfx("repairSuccess");$("#windBoard").classList.add("energized");windStatus("⚡ TESTING — power is flowing through the repaired line.");updateWindUi();setTimeout(completeWindRepair,900)});
 function closeDeveloperRepair(){repairGame=null;towerGame=null;transformerGame=null;shortGame=null;windGame=null;devTestActive=false;$("#repairOverlay").classList.add("hidden");$("#towerRepairOverlay").classList.add("hidden");$("#transformerRepairOverlay").classList.add("hidden");$("#shortRepairOverlay").classList.add("hidden");$("#windRepairOverlay").classList.add("hidden");}
+function testEmergencySound(type){if(!developerTestMode)return;AudioManager.playSfx("emergencySiren");setTimeout(()=>AudioManager.playSfx(EMERGENCY_SFX[type]||"emergencyAlert"),1600);showEmergencyOverlay(type)}
 function startDeveloperRepair(type){if(!developerTestMode)return;closeDeveloperRepair();const panel=document.getElementById("devTestPanel"),toggle=document.getElementById("devTestToggle");panel?.classList.add("hidden");toggle?.setAttribute("aria-expanded","false");if(toggle)toggle.textContent="🧪 TEST MODE ▼";devTestActive=true;devTestType=type;difficulty="medium";loadLevel(0);const testIndex=-1;if(type==="line")openRepairMinigame("fallen_line",testIndex,true);else if(type==="tower")openTowerRepairMinigame(testIndex);else if(type==="transformer")openTransformerRepairMinigame(testIndex);else if(type==="short")openShortRepairMinigame(testIndex);else if(type==="tree")openWindRepairMinigame(testIndex);else{panel.querySelector("h2").textContent="TEST MODE: "+type.toUpperCase()+" has no dedicated minigame yet";setTimeout(()=>panel.querySelector("h2").textContent="POWER TOWN TEST MODE",1800);devTestActive=false;}}
 const developerTestMode=new URLSearchParams(location.search).get("test")==="1";
-if(developerTestMode){const panel=document.getElementById("devTestPanel"),toggle=document.getElementById("devTestToggle");toggle.classList.remove("hidden");document.getElementById("startOverlay").classList.add("hidden");toggle.addEventListener("click",e=>{e.stopPropagation();const open=panel.classList.toggle("hidden");toggle.setAttribute("aria-expanded",String(!open));toggle.textContent=open?"🧪 TEST MODE ▼":"🧪 TEST MODE ▲"});panel.addEventListener("click",e=>e.stopPropagation());document.addEventListener("click",()=>{if(!panel.classList.contains("hidden")){panel.classList.add("hidden");toggle.setAttribute("aria-expanded","false");toggle.textContent="🧪 TEST MODE ▼"}});document.querySelectorAll("[data-test-repair]").forEach(b=>b.addEventListener("click",()=>startDeveloperRepair(b.dataset.testRepair)));document.getElementById("testPowerOffSound").addEventListener("click",()=>AudioManager.playSfx("lightSwitchOff"));document.getElementById("testPowerOnSound").addEventListener("click",()=>AudioManager.playSfx("lightSwitchOn"));document.getElementById("restartRepairTest").addEventListener("click",()=>{if(devTestType)startDeveloperRepair(devTestType)});document.getElementById("closeRepairTest").addEventListener("click",closeDeveloperRepair);document.getElementById("resetTestMode").addEventListener("click",()=>{closeDeveloperRepair();difficulty="medium";loadLevel(0)});document.getElementById("returnNormalGame").addEventListener("click",()=>{location.href=location.pathname});}
+if(developerTestMode){const panel=document.getElementById("devTestPanel"),toggle=document.getElementById("devTestToggle");toggle.classList.remove("hidden");document.getElementById("startOverlay").classList.add("hidden");toggle.addEventListener("click",e=>{e.stopPropagation();const open=panel.classList.toggle("hidden");toggle.setAttribute("aria-expanded",String(!open));toggle.textContent=open?"🧪 TEST MODE ▼":"🧪 TEST MODE ▲"});panel.addEventListener("click",e=>e.stopPropagation());document.addEventListener("click",()=>{if(!panel.classList.contains("hidden")){panel.classList.add("hidden");toggle.setAttribute("aria-expanded","false");toggle.textContent="🧪 TEST MODE ▼"}});document.querySelectorAll("[data-test-repair]").forEach(b=>b.addEventListener("click",()=>startDeveloperRepair(b.dataset.testRepair)));
+document.querySelectorAll("[data-test-emergency]").forEach(b=>b.addEventListener("click",()=>testEmergencySound(b.dataset.testEmergency)));document.getElementById("testVictory").addEventListener("click",()=>{if(!levelComplete)finishLevel()});document.getElementById("testPowerOffSound").addEventListener("click",()=>AudioManager.playSfx("lightSwitchOff"));document.getElementById("testPowerOnSound").addEventListener("click",()=>AudioManager.playSfx("lightSwitchOn"));document.getElementById("restartRepairTest").addEventListener("click",()=>{if(devTestType)startDeveloperRepair(devTestType)});document.getElementById("closeRepairTest").addEventListener("click",closeDeveloperRepair);document.getElementById("resetTestMode").addEventListener("click",()=>{closeDeveloperRepair();difficulty="medium";loadLevel(0)});document.getElementById("returnNormalGame").addEventListener("click",()=>{location.href=location.pathname});}
 function useTool(i,key){
   if(levelComplete||pendingEvent)return;
   hintHouse=null; hintTile=null;
